@@ -1,0 +1,81 @@
+/* components/DepositModal.module.css */
+
+.modalOverlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+  }
+  
+  .modal {
+    background-color: #111827;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    width: 100%;
+    max-width: 25rem; /* 400px */
+    margin: 0 1rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    border: 1px solid #374151;
+  }
+  
+  .title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: #ffffff;
+  }
+  
+  .input {
+    background-color: #374151;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    width: 100%;
+    color: #ffffff;
+    border: none;
+    outline: none;
+    margin-bottom: 1.5rem;
+  }
+  
+  .input:focus {
+    box-shadow: 0 0 0 2px #3b82f6;
+  }
+  
+  .buttonGroup {
+    display: flex;
+    justify-content: flex-end;
+  }
+  
+  .cancelButton {
+    background-color: #4b5563;
+    color: white;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    margin-right: 0.5rem;
+    transition: background-color 0.2s ease-in-out;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .cancelButton:hover {
+    background-color: #374151;
+  }
+  
+  .confirmButton {
+    background-color: #10b981;
+    color: white;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    transition: background-color 0.2s ease-in-out;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .confirmButton:hover {
+    background-color: #059669;
+  }
+  
