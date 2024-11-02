@@ -8,9 +8,27 @@ import styles from './Home.module.css';
 
 export default function Home() {
   const [isDepositModalOpen, setDepositModalOpen] = useState(false);
+  const [players, setPlayers] = useState([]);
 
   const toggleDepositModal = () => {
     setDepositModalOpen(!isDepositModalOpen);
+  };
+
+  const handleDeposit = (player) => {
+    setPlayers((prevPlayers) => {
+      const existingPlayer = prevPlayers.find((p) => p.name === player.name);
+      if (existingPlayer) {
+        // Atualizar o depósito existente
+        return prevPlayers.map((p) =>
+          p.name === player.name
+            ? { ...p, deposit: p.deposit + player.amount }
+            : p
+        );
+      } else {
+        // Adicionar um novo jogador
+        return [...prevPlayers, { name: player.name, deposit: player.amount }];
+      }
+    });
   };
 
   return (
@@ -33,8 +51,8 @@ export default function Home() {
 
       {/* Main Content */}
       <main className={styles.main}>
-        <Roulette />
-        <Leaderboard />
+        <Roulette players={players} />
+        <Leaderboard players={players} />
       </main>
 
       {/* Footer */}
@@ -43,7 +61,9 @@ export default function Home() {
       </footer>
 
       {/* Deposit Modal */}
-      {isDepositModalOpen && <DepositModal onClose={toggleDepositModal} />}
+      {isDepositModalOpen && (
+        <DepositModal onClose={toggleDepositModal} onDeposit={handleDeposit} />
+      )}
     </div>
   );
 }

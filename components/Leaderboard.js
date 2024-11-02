@@ -1,23 +1,18 @@
 // components/Leaderboard.js
 import styles from './Leaderboard.module.css';
 
-export default function Leaderboard() {
-  const players = [
-    { name: 'Player1', deposit: 50, chance: '30%' },
-    { name: 'Player2', deposit: 30, chance: '20%' },
-    { name: 'Player3', deposit: 20, chance: '10%' },
-    { name: 'Player4', deposit: 10, chance: '5%' },
-  ];
+export default function Leaderboard({ players }) {
+  const totalDeposits = players.reduce((acc, player) => acc + player.deposit, 0);
 
   return (
     <div className={styles.leaderboard}>
-      <h2 className={styles.title}>Current Deposits</h2>
+      <h2 className={styles.title}>Depósitos Atuais</h2>
       <div className={styles.tableContainer}>
         <table className={styles.table}>
           <thead>
             <tr>
-              <th>Player</th>
-              <th>Deposit</th>
+              <th>Jogador</th>
+              <th>Depósito</th>
               <th>Chance</th>
             </tr>
           </thead>
@@ -26,7 +21,11 @@ export default function Leaderboard() {
               <tr key={index}>
                 <td>{player.name}</td>
                 <td>{player.deposit} tokens</td>
-                <td>{player.chance}</td>
+                <td>
+                  {totalDeposits > 0
+                    ? ((player.deposit / totalDeposits) * 100).toFixed(2) + '%'
+                    : '0%'}
+                </td>
               </tr>
             ))}
           </tbody>

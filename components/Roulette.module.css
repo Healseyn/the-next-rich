@@ -1,52 +1,90 @@
 /* components/Roulette.module.css */
 
 .rouletteContainer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.rouletteWheel {
+  width: 20rem;
+  height: 20rem;
+  border-radius: 50%;
+  box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.5), 0 8px 24px rgba(0, 0, 0, 0.25);
+  border: 4px solid #10b981;
+  overflow: hidden;
+  position: relative;
+}
+
+.indicator {
+  position: absolute;
+  top: calc(50% - 160px - 30px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 15px solid transparent;
+  border-right: 15px solid transparent;
+  border-bottom: 30px solid #ff0000;
+  filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.5));
+  z-index: 1;
+}
+
+.spinButton {
+  margin-top: 1.5rem;
+  background-color: #3b82f6;
+  color: white;
+  font-weight: 600;
+  padding: 0.5rem 1.5rem;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s ease-in-out;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  border: none;
+  cursor: pointer;
+}
+
+.spinButton:hover {
+  background-color: #2563eb;
+}
+
+.segmentText {
+  font-size: 14px;
+  fill: #ffffff;
+  font-weight: bold;
+}
+
+.wheelCenterCircle {
+  fill: #111827;
+  stroke: #10b981;
+  stroke-width: 4;
+}
+
+.wheelIcon {
+  font-size: 2rem;
+  fill: #10b981;
+}
+
+@media (max-width: 768px) {
   .rouletteWheel {
-    background-color: #1f2937; /* Cinza-800 */
-    border-radius: 50%;
-    width: 20rem; /* 320px */
-    height: 20rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-    border: 4px solid #10b981; /* Cor de destaque */
+    width: 16rem;
+    height: 16rem;
   }
-  
-  .wheelIcon {
-    font-size: 4rem; /* 64px */
-    animation: spin 10s linear infinite;
-    color: #10b981; /* Cor de destaque */
-  }
-  
+
   .spinButton {
-    margin-top: 1.5rem;
-    background-color: #3b82f6; /* Azul para destaques */
-    color: white;
-    font-weight: 600;
-    padding: 0.5rem 1.5rem;
-    border-radius: 0.5rem;
-    transition: background-color 0.2s ease-in-out;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-    border: none;
-    cursor: pointer;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
   }
-  
-  .spinButton:hover {
-    background-color: #2563eb;
+
+  .wheelIcon {
+    font-size: 1.5rem;
   }
-  
-  @keyframes spin {
-    from {
-      transform: rotate(0deg);
-    }
-    to {
-      transform: rotate(360deg);
-    }
+
+  .segmentText {
+    font-size: 12px;
   }
-  
+
+  .indicator {
+    top: calc(50% - 128px - 30px);
+  }
+}
