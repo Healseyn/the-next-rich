@@ -5,6 +5,7 @@ import Roulette from '../components/Roulette';
 import Leaderboard from '../components/Leaderboard';
 import DepositModal from '../components/DepositModal';
 import styles from './Home.module.css';
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 
 export default function Home() {
   const [isDepositModalOpen, setDepositModalOpen] = useState(false);
@@ -18,14 +19,14 @@ export default function Home() {
     setPlayers((prevPlayers) => {
       const existingPlayer = prevPlayers.find((p) => p.name === player.name);
       if (existingPlayer) {
-        // Atualizar o depósito existente
+        // Update existing deposit
         return prevPlayers.map((p) =>
           p.name === player.name
             ? { ...p, deposit: p.deposit + player.amount }
             : p
         );
       } else {
-        // Adicionar um novo jogador
+        // Add new player
         return [...prevPlayers, { name: player.name, deposit: player.amount }];
       }
     });
@@ -44,9 +45,12 @@ export default function Home() {
       {/* Header */}
       <header className={styles.header}>
         <h1 className={styles.title}>💰 The Next Rich</h1>
-        <button onClick={toggleDepositModal} className={styles.depositButton}>
-          Deposit Tokens
-        </button>
+        <div className={styles.buttonGroup}>
+          <button onClick={toggleDepositModal} className={styles.depositButton}>
+            Deposit Tokens
+          </button>
+          <WalletMultiButton className={styles.connectButton} />
+        </div>
       </header>
 
       {/* Main Content */}

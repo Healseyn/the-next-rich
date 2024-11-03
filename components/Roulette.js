@@ -7,7 +7,7 @@ export default function Roulette({ players }) {
   const [isSpinning, setIsSpinning] = useState(false);
   const rouletteRef = useRef(null);
 
-  // Gerar cores únicas para cada jogador
+  // Generate unique colors for each player
   const generateColors = (num) => {
     const colors = [];
     const hueStep = Math.floor(360 / num);
@@ -17,10 +17,10 @@ export default function Roulette({ players }) {
     return colors;
   };
 
-  // Calcular o total de depósitos
+  // Calculate total deposits
   const totalDeposits = players.reduce((acc, p) => acc + p.deposit, 0);
 
-  // Calcular segmentos com base nos depósitos
+  // Calculate segments based on deposits
   const getSegments = () => {
     let cumulativeAngle = 0;
     return players.map((player) => {
@@ -40,15 +40,15 @@ export default function Roulette({ players }) {
   const segments = getSegments();
   const colors = generateColors(segments.length);
 
-  // Desenhar uma fatia da roleta
+  // Draw a slice of the roulette
   const renderSlice = (segment, index) => {
     const { startAngle, angle } = segment;
     const endAngle = startAngle + angle;
     const largeArcFlag = angle > 180 ? 1 : 0;
 
-    const radius = 160; // Raio da roleta
-    const centerX = 160; // Centro X
-    const centerY = 160; // Centro Y
+    const radius = 160; // Radius of the roulette
+    const centerX = 160; // Center X
+    const centerY = 160; // Center Y
 
     const startRadians = (Math.PI / 180) * startAngle;
     const endRadians = (Math.PI / 180) * endAngle;
@@ -58,7 +58,7 @@ export default function Roulette({ players }) {
     const x2 = centerX + radius * Math.cos(endRadians);
     const y2 = centerY + radius * Math.sin(endRadians);
 
-    // Definir um ID único para o gradiente
+    // Define a unique ID for the gradient
     const gradientId = `gradient${index}`;
 
     return (
@@ -79,12 +79,12 @@ export default function Roulette({ players }) {
     );
   };
 
-  // Posicionar os nomes dos jogadores em seus segmentos
+  // Position player names within their segments
   const renderLabels = () => {
     return segments.map((segment, index) => {
       const midAngle = segment.startAngle + segment.angle / 2;
       const radians = (Math.PI / 180) * midAngle;
-      const radius = 100; // Raio para posicionar os labels
+      const radius = 100; // Radius for positioning labels
       const x = 160 + radius * Math.cos(radians);
       const y = 160 + radius * Math.sin(radians);
 
@@ -104,38 +104,38 @@ export default function Roulette({ players }) {
     });
   };
 
-  // Função de giro com resultados aleatórios para teste
+  // Spin function with random results for testing
   const handleSpin = () => {
     if (isSpinning || players.length === 0) return;
 
     setIsSpinning(true);
     setWinner(null);
 
-    // Selecionar um vencedor aleatoriamente para teste
+    // Select a random winner for testing
     const randomIndex = Math.floor(Math.random() * players.length);
     const selectedPlayer = segments[randomIndex];
 
-    // Calcular o ângulo final para a rotação
-    const spins = 5; // Número de voltas completas
+    // Calculate the final angle for rotation
+    const spins = 5; // Number of complete spins
     const finalAngle =
       360 * spins + (360 - (selectedPlayer.startAngle + selectedPlayer.angle / 2));
 
-    // Aplicar a rotação
+    // Apply rotation
     if (rouletteRef.current) {
       rouletteRef.current.style.transition = 'transform 4s ease-out';
       rouletteRef.current.style.transform = `rotate(${finalAngle}deg)`;
     }
 
-    // Após a rotação, definir o vencedor
+    // After rotation, set the winner
     setTimeout(() => {
       setIsSpinning(false);
       setWinner(selectedPlayer.name);
-      // Resetar a posição da roleta
+      // Reset the roulette position
       if (rouletteRef.current) {
         rouletteRef.current.style.transition = 'none';
         rouletteRef.current.style.transform = `rotate(${finalAngle % 360}deg)`;
       }
-    }, 4000); // Duração da rotação em ms
+    }, 4000); // Duration of the spin in ms
   };
 
   return (
@@ -148,7 +148,7 @@ export default function Roulette({ players }) {
       >
         {segments.map((segment, index) => renderSlice(segment, index))}
         {renderLabels()}
-        {/* Centro da roleta */}
+        {/* Center of the roulette */}
         <circle
           cx="160"
           cy="160"

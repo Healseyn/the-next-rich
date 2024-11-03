@@ -24,6 +24,11 @@
   color: #10b981;
 }
 
+.buttonGroup {
+  display: flex;
+  gap: 1rem; /* Space between buttons */
+}
+
 .depositButton {
   background-color: #10b981;
   color: white;
@@ -37,6 +42,21 @@
 
 .depositButton:hover {
   background-color: #059669;
+}
+
+.connectButton {
+  background-color: #3b82f6;
+  color: white;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s ease-in-out;
+  border: none;
+  cursor: pointer;
+}
+
+.connectButton:hover {
+  background-color: #2563eb;
 }
 
 .main {
