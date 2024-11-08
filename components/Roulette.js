@@ -1,30 +1,33 @@
+// components/Roulette.js
 import { useState, useRef, useEffect } from 'react';
+import Confetti from './Confetti'; // Importar o componente Confetti
 import styles from './Roulette.module.css';
 
 export default function Roulette({ players, onOpenDepositModal }) {
   const [winner, setWinner] = useState(null);
+  const [showConfetti, setShowConfetti] = useState(false); // Estado para controlar o confete
   const [isSpinning, setIsSpinning] = useState(false);
   const [countdown, setCountdown] = useState(30);
   const [currentAngle, setCurrentAngle] = useState(0);
   const rouletteRef = useRef(null);
   const countdownRef = useRef(null);
 
-  // Parameters of the roulette
+  // Parâmetros da roleta
   const centerX = 160;
   const centerY = 160;
-  const radius = 160; // Radius of the roulette
+  const radius = 160; // Raio da roleta
 
-  // Angle and position of the indicator
-  const indicatorPositionAngle = 315; // Angle where the indicator is positioned
+  // Ângulo e posição do indicador
+  const indicatorPositionAngle = 315; // Ângulo onde o indicador está posicionado
   const indicatorAngleRadians = (indicatorPositionAngle * Math.PI) / 180;
   const indicatorX = centerX + radius * Math.cos(indicatorAngleRadians);
   const indicatorY = centerY + radius * Math.sin(indicatorAngleRadians);
 
-  // Function to calculate the rotation of the indicator
+  // Função para calcular a rotação do indicador
   const calculateIndicatorRotation = (x, y, centerX, centerY) => {
     const angleRadians = Math.atan2(centerY - y, centerX - x);
     const angleDegrees = angleRadians * (180 / Math.PI);
-    return angleDegrees + 90; // Adjust by 90 degrees
+    return angleDegrees + 90; // Ajuste de 90 graus
   };
 
   const indicatorRotation = calculateIndicatorRotation(
@@ -34,7 +37,7 @@ export default function Roulette({ players, onOpenDepositModal }) {
     centerY
   );
 
-  // Generate unique colors for each player
+  // Gerar cores únicas para cada jogador
   const generateColors = (num) => {
     const colors = [];
     const hueStep = Math.floor(360 / num);
@@ -44,14 +47,14 @@ export default function Roulette({ players, onOpenDepositModal }) {
     return colors;
   };
 
-  // Calculate the total deposits
+  // Calcular o total de depósitos
   const totalDeposits = players.reduce((acc, p) => acc + p.deposit, 0);
 
-  // Calculate the segments based on deposits
+  // Calcular os segmentos com base nos depósitos
   const getSegments = () => {
     let cumulativeAngle = 0;
     return players.map((player) => {
-      const tokens = player.deposit; // Number of tokens the player has deposited
+      const tokens = player.deposit; // Número de tokens que o jogador depositou
       const percentage = totalDeposits > 0 ? tokens / totalDeposits : 0;
       const angle = percentage * 360;
       const segment = {
@@ -69,15 +72,15 @@ export default function Roulette({ players, onOpenDepositModal }) {
   const segments = getSegments();
   const colors = generateColors(segments.length);
 
-  // Draw a segment of the roulette
+  // Desenhar um segmento da roleta
   const renderSlice = (segment, index) => {
     const { startAngle, angle } = segment;
     const endAngle = startAngle + angle;
     const largeArcFlag = angle > 180 ? 1 : 0;
 
-    const radius = 160; // Radius of the roulette
-    const centerX = 160; // Center X
-    const centerY = 160; // Center Y
+    const radius = 160; // Raio da roleta
+    const centerX = 160; // Centro X
+    const centerY = 160; // Centro Y
 
     const startRadians = (Math.PI / 180) * startAngle;
     const endRadians = (Math.PI / 180) * endAngle;
@@ -87,7 +90,7 @@ export default function Roulette({ players, onOpenDepositModal }) {
     const x2 = centerX + radius * Math.cos(endRadians);
     const y2 = centerY + radius * Math.sin(endRadians);
 
-    // Define a unique ID for the gradient
+    // Definir um ID único para o gradiente
     const gradientId = `gradient${index}`;
 
     return (
@@ -108,12 +111,12 @@ export default function Roulette({ players, onOpenDepositModal }) {
     );
   };
 
-  // Position the player names on the segments
+  // Posicionar os nomes dos jogadores nos segmentos
   const renderLabels = () => {
     return segments.map((segment, index) => {
       const midAngle = segment.startAngle + segment.angle / 2;
       const radians = (Math.PI / 180) * midAngle;
-      const radius = 100; // Radius for positioning the labels
+      const radius = 100; // Raio para posicionar os rótulos
       const x = 160 + radius * Math.cos(radians);
       const y = 160 + radius * Math.sin(radians);
 
@@ -133,48 +136,48 @@ export default function Roulette({ players, onOpenDepositModal }) {
     });
   };
 
-  // Simulate an API call to determine the winning token number
+  // Simular uma chamada API para determinar o número do token vencedor
   const fetchWinningTokenFromAPI = () => {
     return new Promise((resolve) => {
       setTimeout(() => {
-        // Total number of tokens in the roulette
+        // Total de tokens na roleta
         const totalTokens = players.reduce((acc, p) => acc + p.deposit, 0);
 
-        // Generate a random token number between 1 and totalTokens
+        // Gerar um número de token aleatório entre 1 e totalTokens
         const winningToken = Math.floor(Math.random() * totalTokens) + 1;
 
         resolve(winningToken);
-      }, 1000); // Simulate network delay of 1 second
+      }, 1000); // Simular delay de rede de 1 segundo
     });
   };
 
-  // Function to map the winning token to an angle
+  // Função para mapear o token vencedor a um ângulo
   const getAngleForToken = (tokenNumber) => {
     let cumulativeTokens = 0;
 
     for (let segment of segments) {
-      cumulativeTokens += segment.tokens; // Number of tokens in the segment
+      cumulativeTokens += segment.tokens; // Número de tokens no segmento
 
       if (tokenNumber <= cumulativeTokens) {
-        // Token is within this segment
+        // Token está dentro deste segmento
         const tokenInSegment = tokenNumber - (cumulativeTokens - segment.tokens);
         const tokenPercentage = tokenInSegment / segment.tokens;
 
-        // Calculate the angle within the segment
+        // Calcular o ângulo dentro do segmento
         const angleWithinSegment = tokenPercentage * segment.angle;
 
-        // Total angle from the start of the wheel
+        // Ângulo total a partir do início da roleta
         const tokenAngle = (segment.startAngle + angleWithinSegment) % 360;
 
         return { tokenAngle, winnerName: segment.name };
       }
     }
 
-    // Fallback in case something goes wrong
+    // Fallback caso algo dê errado
     return { tokenAngle: 0, winnerName: null };
   };
 
-  // Function to spin the roulette using the simulated API call
+  // Função para girar a roleta utilizando a chamada API simulada
   const handleSpin = async () => {
     if (isSpinning || players.length === 0) return;
 
@@ -182,51 +185,58 @@ export default function Roulette({ players, onOpenDepositModal }) {
     setWinner(null);
 
     try {
-      // Simulate API call to get the winning token number
+      // Simular chamada API para obter o número do token vencedor
       const winningToken = await fetchWinningTokenFromAPI();
 
-      // Get the angle corresponding to the winning token
+      // Obter o ângulo correspondente ao token vencedor
       const { tokenAngle, winnerName } = getAngleForToken(winningToken);
 
-      // Calculate the angle to rotate the wheel
-      const spins = 15; // Number of complete rotations for effect
+      // Calcular o ângulo para girar a roleta
+      const spins = 15; // Número de rotações completas para efeito
       const indicatorAngle = indicatorPositionAngle;
 
-      // Calculate the current rotation of the wheel
+      // Calcular a rotação atual da roleta
       const currentRotation = currentAngle % 360;
 
-      // Calculate the angle difference needed to align the winning token under the indicator
-      let deltaAngle = (indicatorAngle - tokenAngle - currentRotation + 360 * 3) % 360;
+      // Calcular a diferença de ângulo necessária para alinhar o token vencedor sob o indicador
+      let deltaAngle =
+        (indicatorAngle - tokenAngle - currentRotation + 360 * 3) % 360;
 
-      // Ensure the wheel spins at least 'spins' times
+      // Garantir que a roleta gire pelo menos 'spins' vezes
       const finalAngle = spins * 360 + deltaAngle;
 
       const newAngle = currentAngle + finalAngle;
-      setCurrentAngle(newAngle); // Update the accumulated angle
+      setCurrentAngle(newAngle); // Atualizar o ângulo acumulado
 
-      // Apply rotation with a longer transition for deceleration effect
+      // Aplicar rotação com transição mais longa para desaceleração
       if (rouletteRef.current) {
         rouletteRef.current.style.transition =
           'transform 6s cubic-bezier(0.33, 1, 0.68, 1)';
         rouletteRef.current.style.transform = `rotate(${newAngle}deg)`;
       }
 
-      // After the rotation, set the winner
+      // Após a rotação, definir o vencedor e mostrar o confete
       setTimeout(() => {
         setIsSpinning(false);
         setWinner(winnerName);
-        setCountdown(30); // Reset the countdown after the spin
-      }, 6000); // Duration of the spin in ms (6 seconds)
+        setCountdown(30); // Resetar o countdown após o giro
+        setShowConfetti(true); // Mostrar confete
+
+        // Parar o confete após 30 segundos
+        setTimeout(() => {
+          setShowConfetti(false);
+        }, 30000);
+      }, 6000); // Duração do giro em ms (6 segundos)
     } catch (error) {
-      console.error('Error fetching the winning token:', error);
+      console.error('Erro ao buscar o token vencedor:', error);
       setIsSpinning(false);
-      setCountdown(30); // Reset the countdown even in case of an error
+      setCountdown(30); // Resetar o countdown mesmo em caso de erro
     }
   };
 
-  // Effect for the countdown and automatically spin every 30 seconds
+  // Efeito para o countdown e girar automaticamente a cada 30 segundos
   useEffect(() => {
-    // Only set up the countdown if not spinning
+    // Apenas configurar o countdown se não estiver girando
     if (!isSpinning) {
       countdownRef.current = setInterval(() => {
         setCountdown((prevCountdown) => {
@@ -240,7 +250,7 @@ export default function Roulette({ players, onOpenDepositModal }) {
       }, 1000);
     }
 
-    // Clear the interval when the component unmounts or when spinning starts
+    // Limpar o intervalo ao desmontar o componente ou quando iniciar um giro
     return () => clearInterval(countdownRef.current);
   }, [isSpinning, segments.length]);
 
@@ -261,7 +271,7 @@ export default function Roulette({ players, onOpenDepositModal }) {
       >
         {segments.map((segment, index) => renderSlice(segment, index))}
         {renderLabels()}
-        {/* Center of the roulette */}
+        {/* Centro da roleta */}
         <circle
           cx="160"
           cy="160"
@@ -278,22 +288,25 @@ export default function Roulette({ players, onOpenDepositModal }) {
           🎰
         </text>
       </svg>
-      {/* Deposit Tokens Button */}
+      {/* Botão de Depositar Tokens */}
       <button
         className={styles.depositButton}
         onClick={onOpenDepositModal}
-        disabled={isSpinning} // Only disabled during spinning
+        disabled={isSpinning} // Apenas desabilitado durante o giro
       >
-        {isSpinning ? 'Depositing...' : 'Deposit Tokens'}
+        {isSpinning ? 'Depositando...' : 'Depositar Tokens'}
       </button>
-      {/* Countdown Timer */}
+      {/* Timer de Countdown */}
       <div className={styles.countdown}>
-        Next spin in: {countdown} second{countdown !== 1 ? 's' : ''}
+        Próximo giro em: {countdown} segundo{countdown !== 1 ? 's' : ''}
       </div>
       {winner && (
-        <div className="mt-4 text-green-500 text-xl font-semibold">
-          🎉 {winner} Won!
-        </div>
+        <>
+          {showConfetti && <Confetti trigger={showConfetti} />}
+          <div className="mt-4 text-green-500 text-xl font-semibold">
+            🎉 {winner} Ganhou!
+          </div>
+        </>
       )}
     </div>
   );
