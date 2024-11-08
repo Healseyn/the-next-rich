@@ -5,7 +5,13 @@ import Roulette from '../components/Roulette';
 import Leaderboard from '../components/Leaderboard';
 import DepositModal from '../components/DepositModal';
 import styles from './Home.module.css';
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import dynamic from 'next/dynamic';
+
+// Dynamically import WalletMultiButton with SSR disabled
+const WalletMultiButton = dynamic(
+  () => import('@solana/wallet-adapter-react-ui').then((mod) => mod.WalletMultiButton),
+  { ssr: false }
+);
 
 export default function Home() {
   const [isDepositModalOpen, setDepositModalOpen] = useState(false);
@@ -32,6 +38,10 @@ export default function Home() {
     });
   };
 
+  const handleBuyTokens = () => {
+    window.open('https://example.com/buy-tokens', '_blank'); // Replace with your actual URL
+  };
+
   return (
     <div className={styles.container}>
       <Head>
@@ -46,8 +56,8 @@ export default function Home() {
       <header className={styles.header}>
         <h1 className={styles.title}>💰 The Next Rich</h1>
         <div className={styles.buttonGroup}>
-          <button onClick={toggleDepositModal} className={styles.depositButton}>
-            Deposit Tokens
+          <button onClick={handleBuyTokens} className={styles.depositButton}>
+            Buy Tokens
           </button>
           <WalletMultiButton className={styles.connectButton} />
         </div>
@@ -55,7 +65,7 @@ export default function Home() {
 
       {/* Main Content */}
       <main className={styles.main}>
-        <Roulette players={players} />
+        <Roulette players={players} onOpenDepositModal={toggleDepositModal} />
         <Leaderboard players={players} />
       </main>
 
