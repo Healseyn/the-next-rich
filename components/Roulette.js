@@ -1,11 +1,11 @@
 // components/Roulette.js
 import { useState, useRef, useEffect } from 'react';
-import Confetti from './Confetti'; // Importar o componente Confetti
+import Confetti from './Confetti';
 import styles from './Roulette.module.css';
 
-export default function Roulette({ players, onOpenDepositModal }) {
+export default function Roulette({ players, onOpenDepositModal, onWinner, setPlayers }) {
   const [winner, setWinner] = useState(null);
-  const [showConfetti, setShowConfetti] = useState(false); // Estado para controlar o confete
+  const [showConfetti, setShowConfetti] = useState(false);
   const [isSpinning, setIsSpinning] = useState(false);
   const [countdown, setCountdown] = useState(30);
   const [currentAngle, setCurrentAngle] = useState(0);
@@ -47,10 +47,10 @@ export default function Roulette({ players, onOpenDepositModal }) {
     return colors;
   };
 
-  // Calcular o total de depósitos
+  // Calcular depósitos totais
   const totalDeposits = players.reduce((acc, p) => acc + p.deposit, 0);
 
-  // Calcular os segmentos com base nos depósitos
+  // Calcular segmentos com base nos depósitos
   const getSegments = () => {
     let cumulativeAngle = 0;
     return players.map((player) => {
@@ -111,12 +111,12 @@ export default function Roulette({ players, onOpenDepositModal }) {
     );
   };
 
-  // Posicionar os nomes dos jogadores nos segmentos
+  // Posicionar nomes dos jogadores nos segmentos
   const renderLabels = () => {
     return segments.map((segment, index) => {
       const midAngle = segment.startAngle + segment.angle / 2;
       const radians = (Math.PI / 180) * midAngle;
-      const radius = 100; // Raio para posicionar os rótulos
+      const radius = 100; // Raio para posicionamento dos labels
       const x = 160 + radius * Math.cos(radians);
       const y = 160 + radius * Math.sin(radians);
 
@@ -136,18 +136,18 @@ export default function Roulette({ players, onOpenDepositModal }) {
     });
   };
 
-  // Simular uma chamada API para determinar o número do token vencedor
+  // Simular chamada à API para determinar o token vencedor
   const fetchWinningTokenFromAPI = () => {
     return new Promise((resolve) => {
       setTimeout(() => {
         // Total de tokens na roleta
         const totalTokens = players.reduce((acc, p) => acc + p.deposit, 0);
 
-        // Gerar um número de token aleatório entre 1 e totalTokens
+        // Gerar um número aleatório entre 1 e totalTokens
         const winningToken = Math.floor(Math.random() * totalTokens) + 1;
 
         resolve(winningToken);
-      }, 1000); // Simular delay de rede de 1 segundo
+      }, 1000); // Simular atraso de 1 segundo
     });
   };
 
@@ -173,11 +173,11 @@ export default function Roulette({ players, onOpenDepositModal }) {
       }
     }
 
-    // Fallback caso algo dê errado
+    // Caso algo dê errado
     return { tokenAngle: 0, winnerName: null };
   };
 
-  // Função para girar a roleta utilizando a chamada API simulada
+  // Função para girar a roleta usando a chamada simulada à API
   const handleSpin = async () => {
     if (isSpinning || players.length === 0) return;
 
@@ -185,7 +185,7 @@ export default function Roulette({ players, onOpenDepositModal }) {
     setWinner(null);
 
     try {
-      // Simular chamada API para obter o número do token vencedor
+      // Simular chamada à API para obter o token vencedor
       const winningToken = await fetchWinningTokenFromAPI();
 
       // Obter o ângulo correspondente ao token vencedor
@@ -208,35 +208,51 @@ export default function Roulette({ players, onOpenDepositModal }) {
       const newAngle = currentAngle + finalAngle;
       setCurrentAngle(newAngle); // Atualizar o ângulo acumulado
 
-      // Aplicar rotação com transição mais longa para desaceleração
+      // Aplicar rotação com transição suave
       if (rouletteRef.current) {
         rouletteRef.current.style.transition =
           'transform 6s cubic-bezier(0.33, 1, 0.68, 1)';
         rouletteRef.current.style.transform = `rotate(${newAngle}deg)`;
       }
 
-      // Após a rotação, definir o vencedor e mostrar o confete
+      // Após a rotação, definir o vencedor e exibir confete
       setTimeout(() => {
         setIsSpinning(false);
         setWinner(winnerName);
-        setCountdown(30); // Resetar o countdown após o giro
-        setShowConfetti(true); // Mostrar confete
+        setCountdown(30); // Reiniciar contagem regressiva
+        setShowConfetti(true);
 
-        // Parar o confete após 30 segundos
+        // Calcular o total de depósitos e o prêmio (80% do total)
+        const totalDeposits = players.reduce((acc, p) => acc + p.deposit, 0);
+        const prizeAmount = totalDeposits * 0.8;
+
+        // Passar o vencedor para a página principal
+        if (onWinner) {
+          onWinner({
+            name: winnerName,
+            amount: prizeAmount.toFixed(2),
+            time: new Date().toLocaleTimeString(),
+          });
+        }
+
+        // Resetar os depósitos (limpar jogadores)
+        setPlayers([]);
+
+        // Parar o confete após 5 segundos
         setTimeout(() => {
           setShowConfetti(false);
-        }, 30000);
-      }, 6000); // Duração do giro em ms (6 segundos)
+        }, 5000);
+      }, 6000); // Duração da rotação em ms (6 segundos)
     } catch (error) {
-      console.error('Erro ao buscar o token vencedor:', error);
+      console.error('Erro ao obter o token vencedor:', error);
       setIsSpinning(false);
-      setCountdown(30); // Resetar o countdown mesmo em caso de erro
+      setCountdown(30); // Reiniciar contagem regressiva mesmo em caso de erro
     }
   };
 
-  // Efeito para o countdown e girar automaticamente a cada 30 segundos
+  // Efeito de contagem regressiva e rotação automática a cada 30 segundos
   useEffect(() => {
-    // Apenas configurar o countdown se não estiver girando
+    // Configurar contagem regressiva somente se não estiver girando
     if (!isSpinning) {
       countdownRef.current = setInterval(() => {
         setCountdown((prevCountdown) => {
@@ -250,7 +266,7 @@ export default function Roulette({ players, onOpenDepositModal }) {
       }, 1000);
     }
 
-    // Limpar o intervalo ao desmontar o componente ou quando iniciar um giro
+    // Limpar intervalo ao desmontar componente ou ao iniciar rotação
     return () => clearInterval(countdownRef.current);
   }, [isSpinning, segments.length]);
 
@@ -278,33 +294,32 @@ export default function Roulette({ players, onOpenDepositModal }) {
           r="40"
           className={styles.wheelCenterCircle}
         />
-        <text
-          x="160"
-          y="160"
-          textAnchor="middle"
-          alignmentBaseline="middle"
-          className={styles.wheelIcon}
-        >
-          🎰
-        </text>
+        <image
+          x="130"
+          y="130"
+          width="60"
+          height="60"
+          href="/logo.png"
+          className={styles.wheelCenterImage}
+        />
       </svg>
       {/* Botão de Depositar Tokens */}
       <button
         className={styles.depositButton}
         onClick={onOpenDepositModal}
-        disabled={isSpinning} // Apenas desabilitado durante o giro
+        disabled={isSpinning} // Apenas desabilitado durante a rotação
       >
-        {isSpinning ? 'Depositando...' : 'Depositar Tokens'}
+        {isSpinning ? 'Depositing...' : 'Deposit Tokens'}
       </button>
-      {/* Timer de Countdown */}
+      {/* Contagem regressiva */}
       <div className={styles.countdown}>
-        Próximo giro em: {countdown} segundo{countdown !== 1 ? 's' : ''}
+        Next spin in: {countdown} second{countdown !== 1 ? 's' : ''}
       </div>
       {winner && (
         <>
           {showConfetti && <Confetti trigger={showConfetti} />}
           <div className="mt-4 text-green-500 text-xl font-semibold">
-            🎉 {winner} Ganhou!
+            🎉 {winner} Won!
           </div>
         </>
       )}

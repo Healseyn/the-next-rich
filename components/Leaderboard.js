@@ -6,13 +6,13 @@ export default function Leaderboard({ players }) {
 
   return (
     <div className={styles.leaderboard}>
-      <h2 className={styles.title}>Depósitos Atuais</h2>
+      <h2 className={styles.title}>Current Deposits</h2>
       <div className={styles.tableContainer}>
         <table className={styles.table}>
           <thead>
             <tr>
-              <th>Jogador</th>
-              <th>Depósito</th>
+              <th>Player</th>
+              <th>Deposit</th>
               <th>Chance</th>
             </tr>
           </thead>

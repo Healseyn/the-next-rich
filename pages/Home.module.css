@@ -8,6 +8,11 @@
   flex-direction: column;
 }
 
+.logoContainer {
+  display: flex;
+  align-items: center;
+}
+
 .header {
   display: flex;
   justify-content: space-between;
