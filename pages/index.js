@@ -9,7 +9,7 @@ import LastWinners from '../components/LastWinners';
 import DepositModal from '../components/DepositModal';
 import styles from './Home.module.css';
 
-// Importação dinâmica do WalletMultiButton
+// Dynamic import of WalletMultiButton
 const WalletMultiButton = dynamic(
   () =>
     import('@solana/wallet-adapter-react-ui').then(
@@ -18,12 +18,15 @@ const WalletMultiButton = dynamic(
   { ssr: false }
 );
 
+// Import React Icons
+import { FaDiscord, FaBook } from 'react-icons/fa';
+
 export default function Home() {
   const [isDepositModalOpen, setDepositModalOpen] = useState(false);
   const [players, setPlayers] = useState([]);
   const [winners, setWinners] = useState([]);
 
-  // Simular chamada à API para buscar ganhadores antigos
+  // Simulate API call to fetch past winners
   const fetchWinnersFromAPI = async () => {
     return new Promise((resolve) => {
       setTimeout(() => {
@@ -54,26 +57,26 @@ export default function Home() {
     setPlayers((prevPlayers) => {
       const existingPlayer = prevPlayers.find((p) => p.name === player.name);
       if (existingPlayer) {
-        // Atualizar depósito existente
+        // Update existing deposit
         return prevPlayers.map((p) =>
           p.name === player.name
             ? { ...p, deposit: p.deposit + player.amount }
             : p
         );
       } else {
-        // Adicionar novo jogador
+        // Add new player
         return [...prevPlayers, { name: player.name, deposit: player.amount }];
       }
     });
   };
 
   const handleBuyTokens = () => {
-    window.open('https://example.com/buy-tokens', '_blank'); // Substitua pela URL real
+    window.open('https://example.com/buy-tokens', '_blank'); // Replace with your actual URL
   };
 
   const handleNewWinner = (winner) => {
     setWinners((prevWinners) => [winner, ...prevWinners]);
-    setPlayers([]); // Limpar jogadores após a rotação
+    setPlayers([]); // Clear players after the spin
   };
 
   return (
@@ -86,7 +89,7 @@ export default function Home() {
         />
       </Head>
 
-      {/* Cabeçalho */}
+      {/* Header */}
       <header className={styles.header}>
         <div className={styles.logoContainer}>
           <Image
@@ -105,24 +108,48 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Conteúdo Principal */}
+      {/* Main Content */}
       <main className={styles.main}>
         <Roulette
           players={players}
           onOpenDepositModal={toggleDepositModal}
           onWinner={handleNewWinner}
-          setPlayers={setPlayers} // Certifique-se de passar setPlayers se necessário
+          setPlayers={setPlayers} // Ensure to pass setPlayers if needed
         />
         <Leaderboard players={players} />
         <LastWinners winners={winners} />
       </main>
 
-      {/* Rodapé */}
+      {/* Footer */}
       <footer className={styles.footer}>
-        © {new Date().getFullYear()} The Next Rich. All rights reserved.
+        <div className={styles.footerContent}>
+          <span>© {new Date().getFullYear()} The Next Rich. All rights reserved.</span>
+          <div className={styles.footerLinks}>
+            <a
+              href="https://discord.gg/PDWypMJqXH" // Replace with your Discord invite link
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.footerLink}
+              aria-label="Join our Discord server"
+            >
+              <FaDiscord size={20} />
+              <span className={styles.linkText}>Discord</span>
+            </a>
+            <a
+              href="/docs" // Replace with your actual documentation URL
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.footerLink}
+              aria-label="View our Documentation"
+            >
+              <FaBook size={20} />
+              <span className={styles.linkText}>Docs</span>
+            </a>
+          </div>
+        </div>
       </footer>
 
-      {/* Modal de Depósito */}
+      {/* Deposit Modal */}
       {isDepositModalOpen && (
         <DepositModal onClose={toggleDepositModal} onDeposit={handleDeposit} />
       )}

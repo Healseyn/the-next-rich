@@ -80,3 +80,51 @@
   color: #9ca3af;
   border-top: 1px solid #374151;
 }
+
+.footerContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+@media (min-width: 600px) {
+  .footerContent {
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 0 50px;
+  }
+}
+
+.footerLinks {
+  display: flex;
+  gap: 20px;
+  margin-top: 10px;
+}
+
+@media (min-width: 600px) {
+  .footerLinks {
+    margin-top: 0;
+  }
+}
+
+.footerLink {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: #9ca3af;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.footerLink:hover {
+  color: #10b981; /* Change color on hover to match deposit button */
+}
+
+.linkText {
+  margin-left: 8px;
+}
+
+/* Optional: Adjust icon colors if needed */
+.footerLink svg {
+  color: inherit; /* Inherit color from parent */
+}
