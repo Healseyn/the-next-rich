@@ -21,11 +21,9 @@ export default function DepositModal({ onClose, onDeposit }) {
 
   const { publicKey, signTransaction } = useWallet();
 
-  // Override the connection with your custom RPC endpoint
   const customConnection = new Connection('https://mainnet.helius-rpc.com/?api-key=e9ef9f06-2e04-43ba-a91a-d1ef108c5b8c');
 
-  // Token details and game account
-  const TOKEN_MINT_ADDRESS = new PublicKey('temp'); // temp
+  const TOKEN_MINT_ADDRESS = new PublicKey('BAmqiw5XcKP4ftEwxJC4bQicmXHjJgr9USnDryxBpump');
   const GAME_ACCOUNT_PUBLIC_KEY = new PublicKey('DoFqTcawopjxLBdBhFUEQezByUipqzAmUfng93KUHjPE');
   const decimals = 6; // Your token's decimal count
 
@@ -51,71 +49,58 @@ export default function DepositModal({ onClose, onDeposit }) {
     try {
       const transactionInstructions = [];
 
-      // Get the user's associated token account address
       const userTokenAccountAddress = await getAssociatedTokenAddress(
         TOKEN_MINT_ADDRESS,
         publicKey
       );
 
-      // Ensure the user's token account exists
       await getAccount(customConnection, userTokenAccountAddress);
 
-      // Get the game's associated token account address
       const gameTokenAccountAddress = await getAssociatedTokenAddress(
         TOKEN_MINT_ADDRESS,
         GAME_ACCOUNT_PUBLIC_KEY
       );
 
-      // Check if the game's token account exists
       const gameTokenAccountInfo = await customConnection.getAccountInfo(gameTokenAccountAddress);
 
       if (!gameTokenAccountInfo) {
-        // If it doesn't exist, create it
         transactionInstructions.push(
           createAssociatedTokenAccountInstruction(
-            publicKey, // Payer
+            publicKey,
             gameTokenAccountAddress,
-            GAME_ACCOUNT_PUBLIC_KEY, // Owner of the new token account
+            GAME_ACCOUNT_PUBLIC_KEY,
             TOKEN_MINT_ADDRESS
           )
         );
       }
 
-      // Calculate the amount in the smallest unit
       const amountInLamports = Math.round(amountNumber * Math.pow(10, decimals));
 
-      // Create transfer instruction
       transactionInstructions.push(
         createTransferInstruction(
-          userTokenAccountAddress, // Source account (user's token account)
-          gameTokenAccountAddress, // Destination account (game's token account)
-          publicKey, // Owner of the source account
-          amountInLamports // Amount to transfer (in smallest units)
+          userTokenAccountAddress,
+          gameTokenAccountAddress,
+          publicKey,
+          amountInLamports
         )
       );
 
-      // Create the transaction and add instructions
       const transaction = new Transaction().add(...transactionInstructions);
 
-      // Set the transaction's fee payer and recent blockhash
       transaction.feePayer = publicKey;
       const { blockhash, lastValidBlockHeight } = await customConnection.getLatestBlockhash();
       transaction.recentBlockhash = blockhash;
 
-      // Sign the transaction
       const signedTransaction = await signTransaction(transaction);
 
-      // Send the signed transaction
       const signature = await customConnection.sendRawTransaction(signedTransaction.serialize());
 
-      // Confirm the transaction
       await customConnection.confirmTransaction({
         signature,
         blockhash,
         lastValidBlockHeight,
       });
 
-      // Update game state
       onDeposit({ name, amount: amountNumber });
 
       onClose();
@@ -131,10 +116,9 @@ export default function DepositModal({ onClose, onDeposit }) {
           error.message.includes('Transaction cancelled')
         ))
       ) {
-        // User rejected the transaction in the wallet
         alert('Transaction was cancelled by the user.');
       } else {
-        alert('An error occurred during the deposit. Please try again.');
+        alert('An error occurred during the deposit. The transaction may have failed due to network congestion or other issues. Please try again later.');
       }
     } finally {
       setIsProcessing(false);
@@ -142,7 +126,7 @@ export default function DepositModal({ onClose, onDeposit }) {
   };
 
   const handleNameChange = (e) => {
-    const inputName = e.target.value.slice(0, 10); // Limit to 10 characters
+    const inputName = e.target.value.slice(0, 10);
     setName(inputName);
   };
 

@@ -8,6 +8,8 @@ import Leaderboard from '../components/Leaderboard';
 import LastWinners from '../components/LastWinners';
 import DepositModal from '../components/DepositModal';
 import styles from './Home.module.css';
+import Cookies from 'js-cookie';
+import IntroductionModal from '../components/IntroductionModal'; // Adjust the path accordingly
 
 // Dynamic import of WalletMultiButton
 const WalletMultiButton = dynamic(
@@ -20,11 +22,13 @@ const WalletMultiButton = dynamic(
 
 // Import React Icons
 import { FaDiscord, FaBook } from 'react-icons/fa';
+import PumpFunIcon from '../public/pumpfunicon.png'; // Replace with the correct path
 
 export default function Home() {
   const [isDepositModalOpen, setDepositModalOpen] = useState(false);
   const [players, setPlayers] = useState([]);
   const [winners, setWinners] = useState([]);
+  const [showIntroModal, setShowIntroModal] = useState(false);
 
   // Simulate API call to fetch past winners
   const fetchWinnersFromAPI = async () => {
@@ -49,6 +53,14 @@ export default function Home() {
     loadWinners();
   }, []);
 
+  useEffect(() => {
+    const hasVisited = Cookies.get('hasVisited');
+    if (!hasVisited) {
+      setShowIntroModal(true);
+      Cookies.set('hasVisited', 'true', { expires: 365 });
+    }
+  }, []);
+
   const toggleDepositModal = () => {
     setDepositModalOpen(!isDepositModalOpen);
   };
@@ -71,7 +83,7 @@ export default function Home() {
   };
 
   const handleBuyTokens = () => {
-    window.open('https://example.com/buy-tokens', '_blank'); // Replace with your actual URL
+    window.open('pump.fun', '_blank'); // Replace with your actual URL
   };
 
   const handleNewWinner = (winner) => {
@@ -88,6 +100,8 @@ export default function Home() {
           content="A game of chance on the Solana blockchain"
         />
       </Head>
+
+      {showIntroModal && <IntroductionModal onClose={() => setShowIntroModal(false)} />}
 
       {/* Header */}
       <header className={styles.header}>
@@ -144,6 +158,16 @@ export default function Home() {
             >
               <FaBook size={20} />
               <span className={styles.linkText}>Docs</span>
+            </a>
+            <a
+              href="https://pump.fun"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.footerLink}
+              aria-label="Visit Pump.fun"
+            >
+              <img src={PumpFunIcon} alt="Pump.fun" style={{ width: 20, height: 20 }} />
+              <span className={styles.linkText}>Pump.fun</span>
             </a>
           </div>
         </div>

@@ -1,0 +1,62 @@
+/* components/IntroductionModal.module.css */
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(17, 24, 39, 0.9); /* Semi-transparent dark background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .modal {
+    background-color: #1f2937; /* Match site's dark background */
+    color: #ffffff;
+    padding: 2rem;
+    border-radius: 8px;
+    max-width: 500px;
+    text-align: center;
+  }
+  
+  .modal h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #10b981; /* Green title color */
+    margin-bottom: 1rem;
+  }
+  
+  .modal p {
+    font-size: 1rem;
+    color: #d1d5db; /* Light gray text */
+  }
+  
+  .buttonGroup {
+    margin-top: 2rem;
+  }
+  
+  .nextButton {
+    background-color: #10b981; /* Green button */
+    color: white;
+    font-weight: 600;
+    padding: 0.75rem 2rem;
+    border-radius: 0.5rem;
+    transition: background-color 0.2s ease-in-out;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .nextButton:hover {
+    background-color: #059669;
+  }
+  
+  /* Optional: Add animation or progress indicators */
+
+.gif {
+  margin-top: 1rem;
+  max-width: 50%;
+  height: auto;
+  border-radius: 8px;
+}
