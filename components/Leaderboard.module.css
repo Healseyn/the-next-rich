@@ -9,12 +9,14 @@
   max-width: 40rem; /* 640px */
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
   border: 1px solid #374151;
+  margin-left: auto;
+  margin-right: auto; /* Center the leaderboard container */
 }
 
 .title {
   font-size: 1.5rem;
   font-weight: 700;
-  text-align: center;
+  text-align: center; /* Center the title text */
   margin-bottom: 1.5rem;
   color: #ffffff;
 }
@@ -25,16 +27,24 @@
 
 .table {
   width: 100%;
+  border-collapse: collapse; /* Collapse table borders */
   text-align: left;
 }
 
 .table th,
 .table td {
   padding: 0.75rem;
+  border: 1px solid #374151; /* Add borders to cells */
+  text-align: center; /* Center align text in cells */
 }
 
 .table th {
   color: #9ca3af;
+  background-color: #1f2937; /* Dark background for header */
+}
+
+.table td {
+  color: #ffffff;
 }
 
 .table tr {
@@ -43,4 +53,79 @@
 
 .table tr:hover {
   background-color: #374151;
+}
+
+/* Optional: Hover effect on table rows */
+.table tbody tr:hover {
+  background-color: #1f2937;
+}
+
+/* components/LastWinners.module.css */
+
+.lastWinners {
+  /* Your existing styles */
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: #ffffff;
+  text-align: center;
+}
+
+.noWinners {
+  color: #9ca3af;
+  text-align: center;
+}
+
+.winnersList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.winnerItem {
+  display: flex;
+  flex-wrap: wrap; /* Allows line break on smaller screens */
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #374151;
+}
+
+.winnerPublicKey {
+  color: #10b981; /* Green color */
+  text-decoration: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.winnerPublicKey:hover {
+  text-decoration: underline;
+}
+
+.winnerPrize {
+  color: #fbbf24; /* Yellow color */
+  margin-left: 1rem;
+  flex-shrink: 0;
+}
+
+.winnerTime {
+  color: #9ca3af; /* Gray color */
+  margin-left: 1rem;
+  flex-shrink: 0;
+}
+
+.loading,
+.error {
+  text-align: center;
+  margin-top: 1rem;
+  color: #f87171; /* Red color for errors */
+}
+
+@media (min-width: 600px) {
+  .winnerItem {
+    flex-wrap: nowrap; /* Prevent line break on larger screens */
+  }
 }

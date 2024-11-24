@@ -1,10 +1,10 @@
-// components/DepositModal.js
 import { useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import {
   Connection,
   PublicKey,
   Transaction,
+  TransactionInstruction,
 } from '@solana/web3.js';
 import {
   createTransferInstruction,
@@ -25,6 +25,7 @@ export default function DepositModal({ onClose, onDeposit }) {
 
   const TOKEN_MINT_ADDRESS = new PublicKey('BAmqiw5XcKP4ftEwxJC4bQicmXHjJgr9USnDryxBpump');
   const GAME_ACCOUNT_PUBLIC_KEY = new PublicKey('DoFqTcawopjxLBdBhFUEQezByUipqzAmUfng93KUHjPE');
+  const MEMO_PROGRAM_ID = new PublicKey('MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr'); // Memo Program ID
   const decimals = 6; // Your token's decimal count
 
   const handleDeposit = async () => {
@@ -85,6 +86,14 @@ export default function DepositModal({ onClose, onDeposit }) {
         )
       );
 
+      // Adicionar a instrução de memo com o nome do usuário
+      const memoInstruction = new TransactionInstruction({
+        keys: [],
+        programId: MEMO_PROGRAM_ID,
+        data: Buffer.from(name, 'utf-8'), // Adiciona o nome do usuário como memo
+      });
+      transactionInstructions.push(memoInstruction);
+
       const transaction = new Transaction().add(...transactionInstructions);
 
       transaction.feePayer = publicKey;
@@ -103,6 +112,7 @@ export default function DepositModal({ onClose, onDeposit }) {
 
       onDeposit({ name, amount: amountNumber });
 
+      alert(`Transaction successful! Signature: ${signature}`);
       onClose();
     } catch (error) {
       console.error('Error during deposit:', error);

@@ -25,16 +25,48 @@
   }
   
   .winnersList {
-    list-style-type: none;
+    list-style: none;
     padding: 0;
     margin: 0;
   }
   
   .winnerItem {
     display: flex;
+    flex-wrap: wrap; /* Permite quebra de linha em telas menores */
     justify-content: space-between;
-    padding: 0.75rem;
-    border-top: 1px solid #374151;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #374151;
+  }
+  
+  .winnerPublicKey {
+    color: #10b981; /* Cor verde */
+    text-decoration: none;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  
+  .winnerPublicKey:hover {
+    text-decoration: underline;
+  }
+  
+  .winnerPrize {
+    color: #fbbf24; /* Cor amarela */
+    margin-left: 1rem;
+    flex-shrink: 0; /* Evita que o item reduza de tamanho */
+  }
+  
+  .winnerTime {
+    color: #9ca3af; /* Cor cinza */
+    margin-left: 1rem;
+    flex-shrink: 0;
+  }
+  
+  .loading,
+  .error {
+    text-align: center;
+    margin-top: 1rem;
+    color: #f87171; /* Cor vermelha para erros */
   }
   
   .winnerItem:first-child {
@@ -49,11 +81,15 @@
   .winnerTime {
     color: #9ca3af;
   }
-  /* components/LastWinners.module.css */
   
   .winnerAmount {
     color: #10b981;
     margin: 0 1rem;
     font-weight: 600;
   }
-  
+
+@media (min-width: 600px) {
+  .winnerItem {
+    flex-wrap: nowrap; /* Evita quebra de linha em telas maiores */
+  }
+}
