@@ -70,7 +70,7 @@ export default function Home() {
     // Optional: Update the active round periodically
     const interval = setInterval(() => {
       loadActiveRound();
-    }, 10000); // Update every 10 seconds
+    }, 50000); // Update every 50 seconds
 
     return () => clearInterval(interval); // Clear the interval when the component unmounts
   }, []);
