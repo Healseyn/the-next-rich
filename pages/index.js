@@ -22,7 +22,7 @@ const WalletMultiButton = dynamic(
 );
 
 // Import React Icons
-import { FaDiscord, FaBook } from 'react-icons/fa';
+import { FaDiscord, FaBook, FaTwitter } from 'react-icons/fa';
 import PumpFunIcon from '../public/pumpfunicon.png'; // Ensure the path is correct
 
 export default function Home() {
@@ -188,7 +188,7 @@ export default function Home() {
         <span className={styles.linkText}>Discord</span>
       </a>
       <a
-        href="/docs"
+        href="https://docs.thenextrich.xyz/"
         target="_blank"
         rel="noopener noreferrer"
         className={styles.footerLink}
@@ -206,6 +206,17 @@ export default function Home() {
       >
         <Image src={PumpFunIcon} alt="Pump.fun" width={20} height={20} />
         <span className={styles.linkText}>Pump.fun</span>
+      </a>
+      {/* Add Twitter Link */}
+      <a
+        href="https://x.com/TheNextRichSol"
+        target="_blank"
+        rel="noopener noreferrer"
+        className={styles.footerLink}
+        aria-label="Follow us on Twitter"
+      >
+        <FaTwitter size={20} />
+        <span className={styles.linkText}>Twitter</span>
       </a>
     </div>
   </div>
