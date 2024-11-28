@@ -22,3 +22,19 @@ export async function fetchWinners() {
     throw error; // Re-throw the error to handle it in the component
   }
 }
+
+export async function fetchActiveRound() {
+  try {
+    const response = await fetch('https://api.thenextrich.xyz/rounds/active');
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch active round: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data; // Return the whole data object
+  } catch (error) {
+    console.error('Error fetching active round:', error);
+    throw error;
+  }
+}

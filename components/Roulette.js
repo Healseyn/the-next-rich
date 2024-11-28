@@ -1,16 +1,29 @@
-// components/Roulette.js
 import { useState, useRef, useEffect } from 'react';
 import Confetti from './Confetti';
 import styles from './Roulette.module.css';
+import { fetchRoundResult } from '../utils/api'; // Import the function
+import PrizePool from './PrizePool'; // Importar o componente PrizePool
 
-export default function Roulette({ players, onOpenDepositModal, onWinner, setPlayers }) {
+export default function Roulette({ players, onOpenDepositModal, onWinner, setPlayers, activeRound }) {
   const [winner, setWinner] = useState(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const [isSpinning, setIsSpinning] = useState(false);
-  const [countdown, setCountdown] = useState(1800); // 30 minutes in seconds
+  const [countdown, setCountdown] = useState(null); // Initially null
   const [currentAngle, setCurrentAngle] = useState(0);
   const rouletteRef = useRef(null);
   const countdownRef = useRef(null);
+
+  // Update players when activeRound changes
+  useEffect(() => {
+    if (activeRound && activeRound.participants) {
+      const transformedPlayers = activeRound.participants.map((participant) => ({
+        name: participant.name,
+        deposit: parseFloat(participant.deposit),
+        publicKey: participant.publicKey, // Added publicKey
+      }));
+      setPlayers(transformedPlayers);
+    }
+  }, [activeRound]);
 
   // Parameters for the roulette
   const centerX = 160;
@@ -136,46 +149,24 @@ export default function Roulette({ players, onOpenDepositModal, onWinner, setPla
     });
   };
 
-  // Simulate API call to determine the winning token
-  const fetchWinningTokenFromAPI = () => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        // Total tokens in the roulette
-        const totalTokens = players.reduce((acc, p) => acc + p.deposit, 0);
+  // Update countdown to use API-provided endTime
+  useEffect(() => {
+    if (activeRound && activeRound.endTime) {
+      const endTime = new Date(activeRound.endTime).getTime();
+      const interval = setInterval(() => {
+        const now = Date.now();
+        const timeLeft = Math.max(0, Math.floor((endTime - now) / 1000));
+        setCountdown(timeLeft);
 
-        // Generate a random number between 1 and totalTokens
-        const winningToken = Math.floor(Math.random() * totalTokens) + 1;
+        if (timeLeft <= 0) {
+          clearInterval(interval);
+          handleSpin(); // Start spin when time is up
+        }
+      }, 1000);
 
-        resolve(winningToken);
-      }, 1000); // Simulate 1-second delay
-    });
-  };
-
-  // Function to map the winning token to an angle
-  const getAngleForToken = (tokenNumber) => {
-    let cumulativeTokens = 0;
-
-    for (let segment of segments) {
-      cumulativeTokens += segment.tokens; // Number of tokens in the segment
-
-      if (tokenNumber <= cumulativeTokens) {
-        // Token is within this segment
-        const tokenInSegment = tokenNumber - (cumulativeTokens - segment.tokens);
-        const tokenPercentage = tokenInSegment / segment.tokens;
-
-        // Calculate the angle within the segment
-        const angleWithinSegment = tokenPercentage * segment.angle;
-
-        // Total angle from the start of the roulette
-        const tokenAngle = (segment.startAngle + angleWithinSegment) % 360;
-
-        return { tokenAngle, winnerName: segment.name };
-      }
+      return () => clearInterval(interval);
     }
-
-    // Fallback in case something goes wrong
-    return { tokenAngle: 0, winnerName: null };
-  };
+  }, [activeRound]);
 
   // Function to spin the roulette using the simulated API call
   const handleSpin = async () => {
@@ -185,68 +176,63 @@ export default function Roulette({ players, onOpenDepositModal, onWinner, setPla
     setWinner(null);
 
     try {
-      // Simulate API call to get the winning token
-      const winningToken = await fetchWinningTokenFromAPI();
+      // Obtain round result from API
+      const result = await fetchRoundResult(activeRound.id);
 
-      // Get the angle corresponding to the winning token
-      const { tokenAngle, winnerName } = getAngleForToken(winningToken);
+      // Find winning player
+      const winningPlayer = players.find(
+        (player) => player.publicKey === result.winnerPublicKey
+      );
 
-      // Calculate the angle to spin the roulette
-      const spins = 15; // Number of complete rotations for effect
+      if (!winningPlayer) {
+        throw new Error('Winner not found among players.');
+      }
+
+      // Calculate angle for winner
+      const { tokenAngle } = getAngleForWinner(winningPlayer.name);
+
+      // Calculate rotation angle
+      const spins = 15;
       const indicatorAngle = indicatorPositionAngle;
 
-      // Calculate the current rotation angle of the roulette
       const currentRotation = currentAngle % 360;
 
-      // Calculate the angle difference needed to align the winning token under the indicator
       let deltaAngle =
         (indicatorAngle - tokenAngle - currentRotation + 360 * 3) % 360;
 
-      // Ensure the roulette spins at least 'spins' times
       const finalAngle = spins * 360 + deltaAngle;
 
       const newAngle = currentAngle + finalAngle;
-      setCurrentAngle(newAngle); // Update the cumulative angle
+      setCurrentAngle(newAngle);
 
-      // Apply rotation with smooth transition
       if (rouletteRef.current) {
         rouletteRef.current.style.transition =
           'transform 6s cubic-bezier(0.33, 1, 0.68, 1)';
         rouletteRef.current.style.transform = `rotate(${newAngle}deg)`;
       }
 
-      // After the rotation, set the winner and display confetti
       setTimeout(() => {
         setIsSpinning(false);
-        setWinner(winnerName);
-        setCountdown(1800); // Reset countdown to 30 minutes
+        setWinner(winningPlayer.name);
         setShowConfetti(true);
 
-        // Calculate total deposits and prize (80% of total)
-        const totalDeposits = players.reduce((acc, p) => acc + p.deposit, 0);
-        const prizeAmount = totalDeposits * 0.8;
-
-        // Pass the winner to the main page
         if (onWinner) {
           onWinner({
-            name: winnerName,
-            amount: prizeAmount.toFixed(2),
-            time: new Date().toLocaleTimeString(),
+            name: winningPlayer.name,
+            amount: parseFloat(result.prize),
+            time: new Date(result.endTime).toLocaleTimeString(),
           });
         }
 
-        // Reset the deposits (clear players)
         setPlayers([]);
 
-        // Stop confetti after 5 seconds
         setTimeout(() => {
           setShowConfetti(false);
         }, 5000);
-      }, 6000); // Duration of the rotation in ms (6 seconds)
+      }, 6000);
     } catch (error) {
-      console.error('Error obtaining the winning token:', error);
+      console.error('Error during spin:', error);
       setIsSpinning(false);
-      setCountdown(1800); // Reset countdown to 30 minutes even in case of error
     }
   };
 
@@ -258,25 +244,36 @@ export default function Roulette({ players, onOpenDepositModal, onWinner, setPla
     return `${minutes}m ${paddedSeconds}s`;
   };
 
-  // Effect for the countdown timer (30 minutes)
-  useEffect(() => {
-    // Only set up the countdown if not spinning
-    if (!isSpinning) {
-      countdownRef.current = setInterval(() => {
-        setCountdown((prevCountdown) => {
-          if (prevCountdown === 1) {
-            clearInterval(countdownRef.current);
-            handleSpin();
-            return 1800; // Reset to 30 minutes after spinning
-          }
-          return prevCountdown - 1;
-        });
-      }, 1000);
-    }
+  // Create fetchRoundResult function
+  const fetchRoundResult = async (roundId) => {
+    try {
+      const response = await fetch(`https://api.thenextrich.xyz/rounds/${roundId}/result`);
 
-    // Cleanup interval on component unmount or when spinning starts
-    return () => clearInterval(countdownRef.current);
-  }, [isSpinning, segments.length]);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch round result: ${response.status} ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error('Error fetching round result:', error);
+      throw error;
+    }
+  };
+
+  // Update getAngleForWinner function
+  const getAngleForWinner = (winnerName) => {
+    const segment = segments.find((seg) => seg.name === winnerName);
+    if (segment) {
+      const tokenAngle = (segment.startAngle + segment.angle / 2) % 360;
+      return { tokenAngle };
+    } else {
+      return { tokenAngle: 0 };
+    }
+  };
+
+  // Calculate the Prize Pool using activeRound.prize
+  const prizePool = activeRound && activeRound.prize ? parseFloat(activeRound.prize) : 0;
 
   return (
     <div className={styles.rouletteContainer}>
@@ -323,6 +320,8 @@ export default function Roulette({ players, onOpenDepositModal, onWinner, setPla
       <div className={styles.countdown}>
         Next spin in: {formatCountdown(countdown)}
       </div>
+      {/* Prize Pool Component */}
+      <PrizePool amount={prizePool} />
       {winner && (
         <>
           {showConfetti && <Confetti trigger={showConfetti} />}

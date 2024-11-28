@@ -68,6 +68,14 @@
   color: #ffffff;
 }
 
+.prizePool {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #fbbf24; /* Cor amarela */
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
 @media (max-width: 768px) {
   .rouletteWheel {
     width: 16rem;

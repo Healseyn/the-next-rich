@@ -14,7 +14,7 @@ import {
 } from '@solana/spl-token';
 import styles from './DepositModal.module.css';
 
-export default function DepositModal({ onClose, onDeposit }) {
+export default function DepositModal({ onClose, onDeposit, activeRound }) {
   const [amount, setAmount] = useState('');
   const [name, setName] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -110,7 +110,17 @@ export default function DepositModal({ onClose, onDeposit }) {
         lastValidBlockHeight,
       });
 
-      onDeposit({ name, amount: amountNumber });
+      // Notify the server about the new deposit
+      await sendDepositToServer({
+        roundId: activeRound.id, // Ensure activeRound is available
+        participant: {
+          name,
+          publicKey: publicKey.toString(),
+          deposit: amountNumber.toFixed(6), // Format the deposit amount
+        },
+      });
+
+      onDeposit({ name, deposit: amountNumber }); // Update the state of players
 
       alert(`Transaction successful! Signature: ${signature}`);
       onClose();
@@ -132,6 +142,29 @@ export default function DepositModal({ onClose, onDeposit }) {
       }
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  // Function to send the deposit to the server
+  const sendDepositToServer = async (depositData) => {
+    try {
+      const response = await fetch('https://api.thenextrich.xyz/rounds/deposit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(depositData),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to send deposit: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('Deposit sent to server:', data);
+    } catch (error) {
+      console.error('Error sending deposit to server:', error);
+      // Optional: Display an error message to the user
     }
   };
 

@@ -85,31 +85,41 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  text-align: center; /* Center the text */
+}
+
+.madeWithLove {
+  margin: 0.5rem 0; /* Space around the text */
+  font-size: 0.9rem;
+  color: #9ca3af;
 }
 
 @media (min-width: 600px) {
   .footerContent {
     flex-direction: row;
     justify-content: space-between;
-    padding: 0 50px;
+    align-items: center;
+    text-align: left;
   }
 }
 
 .footerLinks {
   display: flex;
   gap: 20px;
+  flex-wrap: wrap; /* Allow wrapping on smaller screens */
+  justify-content: center; /* Center the links */
   margin-top: 10px;
 }
 
 @media (min-width: 600px) {
   .footerLinks {
     margin-top: 0;
+    justify-content: flex-end;
   }
 }
 
+/* General footer link styles */
 .footerLink {
-  display: flex;
-  align-items: center;
   text-decoration: none;
   color: #9ca3af;
   font-weight: 500;
@@ -118,6 +128,17 @@
 
 .footerLink:hover {
   color: #10b981; /* Change color on hover to match deposit button */
+}
+
+/* Apply flex display only to links inside .footerLinks */
+.footerLinks .footerLink {
+  display: flex;
+  align-items: center;
+}
+
+/* Optional: Adjust icon colors if needed */
+.footerLinks .footerLink svg {
+  color: inherit; /* Inherit color from parent */
 }
 
 .linkText {

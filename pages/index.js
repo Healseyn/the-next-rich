@@ -10,6 +10,7 @@ import DepositModal from '../components/DepositModal';
 import styles from './Home.module.css';
 import Cookies from 'js-cookie';
 import IntroductionModal from '../components/IntroductionModal'; // Adjust the path accordingly
+import { fetchActiveRound, fetchWinners } from '../utils/api'; // Import the fetch functions
 
 // Dynamic import of WalletMultiButton
 const WalletMultiButton = dynamic(
@@ -22,35 +23,56 @@ const WalletMultiButton = dynamic(
 
 // Import React Icons
 import { FaDiscord, FaBook } from 'react-icons/fa';
-import PumpFunIcon from '../public/pumpfunicon.png'; // Replace with the correct path
+import PumpFunIcon from '../public/pumpfunicon.png'; // Ensure the path is correct
 
 export default function Home() {
   const [isDepositModalOpen, setDepositModalOpen] = useState(false);
   const [players, setPlayers] = useState([]);
   const [winners, setWinners] = useState([]);
   const [showIntroModal, setShowIntroModal] = useState(false);
-
-  // Simulate API call to fetch past winners
-  const fetchWinnersFromAPI = async () => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const historicalWinners = [
-          { name: 'Alice', amount: 500, time: '10:30 AM' },
-          { name: 'Bob', amount: 300, time: '11:00 AM' },
-          { name: 'Charlie', amount: 700, time: '11:30 AM' },
-        ];
-        resolve(historicalWinners);
-      }, 1000);
-    });
-  };
+  const [activeRound, setActiveRound] = useState(null); // New state for the active round
 
   useEffect(() => {
+    const loadActiveRound = async () => {
+      try {
+        const round = await fetchActiveRound();
+        setActiveRound(round);
+
+        // If there are participants, update the players state
+        if (round.participants && Array.isArray(round.participants)) {
+          // Transform participants into the expected format
+          const transformedPlayers = round.participants.map((participant) => ({
+            name: participant.name,
+            deposit: parseFloat(participant.deposit),
+          }));
+
+          setPlayers(transformedPlayers);
+        }
+      } catch (error) {
+        console.error('Error loading active round:', error);
+      }
+    };
+
+    loadActiveRound();
+
+    // Load the winners as well
     const loadWinners = async () => {
-      const historicalWinners = await fetchWinnersFromAPI();
-      setWinners(historicalWinners);
+      try {
+        const historicalWinners = await fetchWinners();
+        setWinners(historicalWinners);
+      } catch (error) {
+        console.error('Error loading winners:', error);
+      }
     };
 
     loadWinners();
+
+    // Optional: Update the active round periodically
+    const interval = setInterval(() => {
+      loadActiveRound();
+    }, 10000); // Update every 10 seconds
+
+    return () => clearInterval(interval); // Clear the interval when the component unmounts
   }, []);
 
   useEffect(() => {
@@ -83,7 +105,7 @@ export default function Home() {
   };
 
   const handleBuyTokens = () => {
-    window.open('pump.fun', '_blank'); // Replace with your actual URL
+    window.open('https://pump.fun', '_blank'); // Replace with your actual URL
   };
 
   const handleNewWinner = (winner) => {
@@ -128,50 +150,67 @@ export default function Home() {
           players={players}
           onOpenDepositModal={toggleDepositModal}
           onWinner={handleNewWinner}
-          setPlayers={setPlayers} // Ensure to pass setPlayers if needed
+          setPlayers={setPlayers}
+          activeRound={activeRound} // Pass the active round as a prop
         />
         <Leaderboard players={players} />
         <LastWinners winners={winners} />
       </main>
 
-      {/* Footer */}
-      <footer className={styles.footer}>
-        <div className={styles.footerContent}>
-          <span>© {new Date().getFullYear()} The Next Rich. All rights reserved.</span>
-          <div className={styles.footerLinks}>
-            <a
-              href="https://discord.gg/PDWypMJqXH" // Replace with your Discord invite link
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.footerLink}
-              aria-label="Join our Discord server"
-            >
-              <FaDiscord size={20} />
-              <span className={styles.linkText}>Discord</span>
-            </a>
-            <a
-              href="/docs" // Replace with your actual documentation URL
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.footerLink}
-              aria-label="View our Documentation"
-            >
-              <FaBook size={20} />
-              <span className={styles.linkText}>Docs</span>
-            </a>
-            <a
-              href="https://pump.fun"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.footerLink}
-              aria-label="Visit Pump.fun"
-            >
-              <img src={PumpFunIcon} alt="Pump.fun" style={{ width: 20, height: 20 }} />
-              <span className={styles.linkText}>Pump.fun</span>
-            </a>
-          </div>
-        </div>
-      </footer>
+{/* Footer */}
+<footer className={styles.footer}>
+  <div className={styles.footerContent}>
+    <span>© {new Date().getFullYear()} The Next Rich. All rights reserved.</span>
+
+    {/* New text in the middle */}
+    <div className={styles.madeWithLove}>
+      made with ❤️ by{' '}
+      <a
+        href="https://github.com/Healseyn"
+        target="_blank"
+        rel="noopener noreferrer"
+        className={styles.footerLink}
+      >
+        Healseyn
+      </a>
+    </div>
+
+    <div className={styles.footerLinks}>
+      {/* Existing footer links */}
+      <a
+        href="https://discord.gg/PDWypMJqXH"
+        target="_blank"
+        rel="noopener noreferrer"
+        className={styles.footerLink}
+        aria-label="Join our Discord server"
+      >
+        <FaDiscord size={20} />
+        <span className={styles.linkText}>Discord</span>
+      </a>
+      <a
+        href="/docs"
+        target="_blank"
+        rel="noopener noreferrer"
+        className={styles.footerLink}
+        aria-label="View our Documentation"
+      >
+        <FaBook size={20} />
+        <span className={styles.linkText}>Docs</span>
+      </a>
+      <a
+        href="https://pump.fun"
+        target="_blank"
+        rel="noopener noreferrer"
+        className={styles.footerLink}
+        aria-label="Visit Pump.fun"
+      >
+        <Image src={PumpFunIcon} alt="Pump.fun" width={20} height={20} />
+        <span className={styles.linkText}>Pump.fun</span>
+      </a>
+    </div>
+  </div>
+</footer>
+
 
       {/* Deposit Modal */}
       {isDepositModalOpen && (
