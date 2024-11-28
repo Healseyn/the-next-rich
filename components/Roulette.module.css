@@ -76,6 +76,13 @@
   text-align: center;
 }
 
+.depositsClosedMessage {
+  margin-top: 1rem;
+  color: #ef4444; /* Cor vermelha */
+  font-weight: 600;
+  text-align: center;
+}
+
 @media (max-width: 768px) {
   .rouletteWheel {
     width: 16rem;

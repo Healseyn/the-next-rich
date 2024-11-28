@@ -312,10 +312,22 @@ export default function Roulette({ players, onOpenDepositModal, onWinner, setPla
       <button
         className={styles.depositButton}
         onClick={onOpenDepositModal}
-        disabled={isSpinning} // Disabled during spinning
+        disabled={isSpinning || countdown <= 60} // Desabilita quando faltar 1 minuto ou menos
       >
-        {isSpinning ? 'Depositing...' : 'Deposit Tokens'}
+        {isSpinning
+          ? 'Depositing...'
+          : countdown > 60
+          ? 'Deposit Tokens'
+          : 'Deposits Closed'}
       </button>
+
+      {/* Mensagem de Depósitos Fechados */}
+      {countdown <= 60 && (
+        <div className={styles.depositsClosedMessage}>
+          Deposits are closed for the current round.
+        </div>
+      )}
+
       {/* Countdown Timer */}
       <div className={styles.countdown}>
         Next spin in: {formatCountdown(countdown)}
