@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import {
   Connection,
@@ -18,7 +18,6 @@ export default function DepositModal({ onClose, onDeposit, activeRound }) {
   const [amount, setAmount] = useState('');
   const [name, setName] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [countdown, setCountdown] = useState(null);
 
   const { publicKey, signTransaction } = useWallet();
 
@@ -29,29 +28,7 @@ export default function DepositModal({ onClose, onDeposit, activeRound }) {
   const MEMO_PROGRAM_ID = new PublicKey('MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr'); // Memo Program ID
   const decimals = 6; // Your token's decimal count
 
-  useEffect(() => {
-    if (activeRound && activeRound.endTime) {
-      const endTime = new Date(activeRound.endTime).getTime();
-      const interval = setInterval(() => {
-        const now = Date.now();
-        const timeLeft = Math.max(0, Math.floor((endTime - now) / 1000));
-        setCountdown(timeLeft);
-
-        if (timeLeft <= 0) {
-          clearInterval(interval);
-        }
-      }, 1000);
-
-      return () => clearInterval(interval);
-    }
-  }, [activeRound]);
-
   const handleDeposit = async () => {
-    if (countdown <= 60) {
-      alert('Deposits are closed for the current round.');
-      return;
-    }
-
     if (!publicKey || !signTransaction) {
       alert('Please connect your wallet.');
       return;
