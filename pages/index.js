@@ -100,7 +100,7 @@ export default function Home() {
     window.open('https://pump.fun', '_blank');
   };
 
-  const handleNewWinner = async (winner) => {
+  const handleNewWinner = async () => {
     setHasSpun(true); // Marca que o giro foi concluído
 
     // Recarrega os ganhadores para incluir o novo ganhador

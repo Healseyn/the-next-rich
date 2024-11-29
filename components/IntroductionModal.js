@@ -35,9 +35,9 @@ export default function IntroductionModal({ onClose }) {
         )}
         {step === 3 && (
           <>
-            <h2>Let's Get Started!</h2>
+            <h2>Let&apos;s Get Started!</h2>
             <p>
-              Buy tokens on pump.fun. Click the 'Buy Tokens' button to get started!
+              Buy tokens on pump.fun. Click the &apos;Buy Tokens&apos; button to get started!
             </p>
             <img
               src="https://media.giphy.com/media/3oriO13KTkzPwTykp2/giphy.gif"

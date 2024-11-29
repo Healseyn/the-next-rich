@@ -15,7 +15,7 @@ import {
 } from '@solana/spl-token';
 import styles from './DepositModal.module.css';
 
-export default function DepositModal({ onClose, onDeposit, activeRound }) {
+export default function DepositModal({ onClose, onDeposit }) {
   const [amount, setAmount] = useState('');
   const [name, setName] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
