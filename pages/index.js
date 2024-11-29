@@ -13,7 +13,7 @@ import Cookies from 'js-cookie';
 import IntroductionModal from '../components/IntroductionModal';
 import { fetchActiveRound, fetchWinners } from '../utils/api';
 
-// Importação dinâmica do WalletMultiButton
+// Dynamic import of WalletMultiButton
 const WalletMultiButton = dynamic(
   () =>
     import('@solana/wallet-adapter-react-ui').then(
@@ -22,7 +22,7 @@ const WalletMultiButton = dynamic(
   { ssr: false }
 );
 
-// Importação de ícones do React
+// Import React Icons
 import { FaDiscord, FaBook, FaTwitter } from 'react-icons/fa';
 import PumpFunIcon from '../public/pumpfunicon.png';
 
@@ -32,7 +32,20 @@ export default function Home() {
   const [winners, setWinners] = useState([]);
   const [showIntroModal, setShowIntroModal] = useState(false);
   const [activeRound, setActiveRound] = useState(null);
-  const [hasSpun, setHasSpun] = useState(false); // Novo estado para controlar se a roleta já girou
+  const [hasSpun, setHasSpun] = useState(false); // Controls if the roulette has spun
+
+  useEffect(() => {
+    const loadWinners = async () => {
+      try {
+        const historicalWinners = await fetchWinners();
+        setWinners(historicalWinners.winners || historicalWinners); // Update winners state
+      } catch (error) {
+        console.error('Error loading winners:', error);
+      }
+    };
+
+    loadWinners(); // Fetch winners only once when the page loads
+  }, []);
 
   useEffect(() => {
     const loadActiveRound = async () => {
@@ -52,7 +65,7 @@ export default function Home() {
           setPlayers([]);
         }
 
-        // Resetar hasSpun se a rodada mudar
+        // Reset hasSpun if the round changes
         if (activeRound && round.id !== activeRound.id) {
           setHasSpun(false);
         }
@@ -60,11 +73,9 @@ export default function Home() {
         console.error('Error loading active round:', error);
       }
     };
-
-    // Atualizar a rodada ativa periodicamente
     const interval = setInterval(() => {
-      loadActiveRound();
-    }, 5000); // Atualiza a cada 5 segundos
+      loadActiveRound(); // Periodically update active round
+    }, 5000);
 
     return () => clearInterval(interval);
   }, [activeRound]);
@@ -101,18 +112,17 @@ export default function Home() {
   };
 
   const handleNewWinner = async () => {
-    setHasSpun(true); // Marca que o giro foi concluído
+    setHasSpun(true); // Mark that the spin has been completed
 
-    // Recarrega os ganhadores para incluir o novo ganhador
+    // Reload winners to include the new winner
     try {
       const latestWinners = await fetchWinners();
-      setWinners(latestWinners.winners || latestWinners); // Atualize de acordo com a estrutura retornada
+      setWinners(latestWinners.winners || latestWinners);
     } catch (error) {
       console.error('Error fetching winners:', error);
     }
 
-    // Limpa os jogadores após o giro
-    setPlayers([]);
+    setPlayers([]); // Clear players after the spin
   };
 
   return (
@@ -156,13 +166,13 @@ export default function Home() {
           onWinner={handleNewWinner}
           setPlayers={setPlayers}
           activeRound={activeRound}
-          hasSpun={hasSpun} // Passa hasSpun para o componente Roulette
+          hasSpun={hasSpun} // Pass hasSpun to Roulette
         />
         <Leaderboard players={players} />
         <LastWinners
-          winners={winners}
+          winners={winners.filter((winner) => winner.id !== activeRound?.id)} // Exclude the current round winner
           activeRound={activeRound}
-          hasSpun={hasSpun} // Passa hasSpun para o componente LastWinners
+          hasSpun={hasSpun}
         />
       </main>
 
@@ -173,7 +183,7 @@ export default function Home() {
             © {new Date().getFullYear()} The Next Rich. All rights reserved.
           </span>
 
-          {/* Texto adicional no meio */}
+          {/* Additional text */}
           <div className={styles.madeWithLove}>
             made with ❤️ by{' '}
             <a
@@ -217,7 +227,6 @@ export default function Home() {
               <Image src={PumpFunIcon} alt="Pump.fun" width={20} height={20} />
               <span className={styles.linkText}>Pump.fun</span>
             </a>
-            {/* Link do Twitter */}
             <a
               href="https://x.com/TheNextRichSol"
               target="_blank"
