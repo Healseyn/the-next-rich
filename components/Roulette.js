@@ -1,46 +1,93 @@
+// components/Roulette.js
+
 import { useState, useRef, useEffect } from 'react';
 import Confetti from './Confetti';
 import styles from './Roulette.module.css';
-import { fetchRoundResult } from '../utils/api'; // Import the function
-import PrizePool from './PrizePool'; // Importar o componente PrizePool
+import PrizePool from './PrizePool';
 
-export default function Roulette({ players, onOpenDepositModal, onWinner, setPlayers, activeRound }) {
+export default function Roulette({ onOpenDepositModal, onWinner, activeRound }) {
+  const [players, setPlayers] = useState([]);
   const [winner, setWinner] = useState(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const [isSpinning, setIsSpinning] = useState(false);
-  const [countdown, setCountdown] = useState(null); // Initially null
+  const [countdown, setCountdown] = useState(null);
   const [currentAngle, setCurrentAngle] = useState(0);
+  const [hasSpun, setHasSpun] = useState(false);
+  const [currentRoundId, setCurrentRoundId] = useState(null);
   const rouletteRef = useRef(null);
-  const countdownRef = useRef(null);
 
-  // Update players when activeRound changes
+  // Atualizar jogadores quando activeRound muda
   useEffect(() => {
     if (activeRound && activeRound.participants) {
       const transformedPlayers = activeRound.participants.map((participant) => ({
         name: participant.name,
         deposit: parseFloat(participant.deposit),
-        publicKey: participant.publicKey, // Added publicKey
+        publicKey: participant.playerPublicKey,
       }));
       setPlayers(transformedPlayers);
+    } else {
+      setPlayers([]);
+    }
+
+    // Resetar hasSpun e currentAngle quando uma nova rodada começar
+    if (activeRound && activeRound.id !== currentRoundId) {
+      setHasSpun(false);
+      setCurrentRoundId(activeRound.id);
+      setCurrentAngle(0);
+      if (rouletteRef.current) {
+        rouletteRef.current.style.transition = 'none';
+        rouletteRef.current.style.transform = `rotate(0deg)`;
+      }
     }
   }, [activeRound]);
 
-  // Parameters for the roulette
+  // Atualizar o countdown
+  useEffect(() => {
+    if (activeRound && activeRound.endTime) {
+      const endTime = new Date(activeRound.endTime).getTime();
+      const interval = setInterval(() => {
+        const now = Date.now();
+        const timeLeft = Math.max(0, Math.floor((endTime - now) / 1000));
+        setCountdown(timeLeft);
+
+        if (timeLeft <= 0) {
+          clearInterval(interval);
+        }
+      }, 1000);
+
+      return () => clearInterval(interval);
+    }
+  }, [activeRound]);
+
+  // Detectar mudança de status para 'waiting' e iniciar o giro
+  useEffect(() => {
+    if (
+      activeRound &&
+      activeRound.status === 'waiting' &&
+      !hasSpun &&
+      !isSpinning &&
+      players.length > 0
+    ) {
+      handleSpin(activeRound);
+    }
+  }, [activeRound, hasSpun, isSpinning, players]);
+
+  // Parâmetros para a roleta
   const centerX = 160;
   const centerY = 160;
-  const radius = 160; // Radius of the roulette
+  const radius = 160; // Raio da roleta
 
-  // Angle and position of the indicator
-  const indicatorPositionAngle = 315; // Angle where the indicator is positioned
+  // Ângulo e posição do indicador
+  const indicatorPositionAngle = 315; // Ângulo onde o indicador está posicionado
   const indicatorAngleRadians = (indicatorPositionAngle * Math.PI) / 180;
   const indicatorX = centerX + radius * Math.cos(indicatorAngleRadians);
   const indicatorY = centerY + radius * Math.sin(indicatorAngleRadians);
 
-  // Function to calculate the rotation of the indicator
+  // Função para calcular a rotação do indicador
   const calculateIndicatorRotation = (x, y, centerX, centerY) => {
     const angleRadians = Math.atan2(centerY - y, centerX - x);
     const angleDegrees = angleRadians * (180 / Math.PI);
-    return angleDegrees + 90; // Adjust by 90 degrees
+    return angleDegrees + 90; // Ajustar em 90 graus
   };
 
   const indicatorRotation = calculateIndicatorRotation(
@@ -50,7 +97,7 @@ export default function Roulette({ players, onOpenDepositModal, onWinner, setPla
     centerY
   );
 
-  // Generate unique colors for each player
+  // Gerar cores únicas para cada jogador
   const generateColors = (num) => {
     const colors = [];
     const hueStep = Math.floor(360 / num);
@@ -60,14 +107,14 @@ export default function Roulette({ players, onOpenDepositModal, onWinner, setPla
     return colors;
   };
 
-  // Calculate total deposits
+  // Calcular depósitos totais
   const totalDeposits = players.reduce((acc, p) => acc + p.deposit, 0);
 
-  // Calculate segments based on deposits
+  // Calcular segmentos com base nos depósitos
   const getSegments = () => {
     let cumulativeAngle = 0;
     return players.map((player) => {
-      const tokens = player.deposit; // Number of tokens the player deposited
+      const tokens = player.deposit; // Número de tokens que o jogador depositou
       const percentage = totalDeposits > 0 ? tokens / totalDeposits : 0;
       const angle = percentage * 360;
       const segment = {
@@ -85,15 +132,15 @@ export default function Roulette({ players, onOpenDepositModal, onWinner, setPla
   const segments = getSegments();
   const colors = generateColors(segments.length);
 
-  // Render a segment of the roulette
+  // Renderizar um segmento da roleta
   const renderSlice = (segment, index) => {
     const { startAngle, angle } = segment;
     const endAngle = startAngle + angle;
     const largeArcFlag = angle > 180 ? 1 : 0;
 
-    const radius = 160; // Roulette radius
-    const centerX = 160; // Center X
-    const centerY = 160; // Center Y
+    const radius = 160; // Raio da roleta
+    const centerX = 160; // Centro X
+    const centerY = 160; // Centro Y
 
     const startRadians = (Math.PI / 180) * startAngle;
     const endRadians = (Math.PI / 180) * endAngle;
@@ -103,7 +150,7 @@ export default function Roulette({ players, onOpenDepositModal, onWinner, setPla
     const x2 = centerX + radius * Math.cos(endRadians);
     const y2 = centerY + radius * Math.sin(endRadians);
 
-    // Define a unique ID for the gradient
+    // Define um ID único para o gradiente
     const gradientId = `gradient${index}`;
 
     return (
@@ -124,12 +171,12 @@ export default function Roulette({ players, onOpenDepositModal, onWinner, setPla
     );
   };
 
-  // Position player names on the segments
+  // Posicionar os nomes dos jogadores nos segmentos
   const renderLabels = () => {
     return segments.map((segment, index) => {
       const midAngle = segment.startAngle + segment.angle / 2;
       const radians = (Math.PI / 180) * midAngle;
-      const radius = 100; // Radius for label positioning
+      const radius = 100; // Raio para posicionamento do rótulo
       const x = 160 + radius * Math.cos(radians);
       const y = 160 + radius * Math.sin(radians);
 
@@ -149,49 +196,27 @@ export default function Roulette({ players, onOpenDepositModal, onWinner, setPla
     });
   };
 
-  // Update countdown to use API-provided endTime
-  useEffect(() => {
-    if (activeRound && activeRound.endTime) {
-      const endTime = new Date(activeRound.endTime).getTime();
-      const interval = setInterval(() => {
-        const now = Date.now();
-        const timeLeft = Math.max(0, Math.floor((endTime - now) / 1000));
-        setCountdown(timeLeft);
-
-        if (timeLeft <= 0) {
-          clearInterval(interval);
-          handleSpin(); // Start spin when time is up
-        }
-      }, 1000);
-
-      return () => clearInterval(interval);
-    }
-  }, [activeRound]);
-
-  // Function to spin the roulette using the simulated API call
-  const handleSpin = async () => {
+  // Função para iniciar o giro da roleta
+  const handleSpin = async (roundData) => {
     if (isSpinning || players.length === 0) return;
 
     setIsSpinning(true);
     setWinner(null);
 
     try {
-      // Obtain round result from API
-      const result = await fetchRoundResult(activeRound.id);
-
-      // Find winning player
+      // Encontrar o jogador vencedor
       const winningPlayer = players.find(
-        (player) => player.publicKey === result.winnerPublicKey
+        (player) => player.publicKey === roundData.winnerPublicKey
       );
 
       if (!winningPlayer) {
         throw new Error('Winner not found among players.');
       }
 
-      // Calculate angle for winner
+      // Calcular o ângulo para o vencedor
       const { tokenAngle } = getAngleForWinner(winningPlayer.name);
 
-      // Calculate rotation angle
+      // Calcular o ângulo de rotação
       const spins = 15;
       const indicatorAngle = indicatorPositionAngle;
 
@@ -215,16 +240,15 @@ export default function Roulette({ players, onOpenDepositModal, onWinner, setPla
         setIsSpinning(false);
         setWinner(winningPlayer.name);
         setShowConfetti(true);
+        setHasSpun(true); // Marca que já girou para esta rodada
 
         if (onWinner) {
           onWinner({
             name: winningPlayer.name,
-            amount: parseFloat(result.prize),
-            time: new Date(result.endTime).toLocaleTimeString(),
+            amount: parseFloat(roundData.prize),
+            time: new Date(roundData.endTime).toLocaleTimeString(),
           });
         }
-
-        setPlayers([]);
 
         setTimeout(() => {
           setShowConfetti(false);
@@ -236,32 +260,7 @@ export default function Roulette({ players, onOpenDepositModal, onWinner, setPla
     }
   };
 
-  // Function to format countdown into mm:ss
-  const formatCountdown = (totalSeconds) => {
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    const paddedSeconds = seconds.toString().padStart(2, '0');
-    return `${minutes}m ${paddedSeconds}s`;
-  };
-
-  // Create fetchRoundResult function
-  const fetchRoundResult = async (roundId) => {
-    try {
-      const response = await fetch(`https://api.thenextrich.xyz/rounds/${roundId}/result`);
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch round result: ${response.status} ${response.statusText}`);
-      }
-
-      const result = await response.json();
-      return result;
-    } catch (error) {
-      console.error('Error fetching round result:', error);
-      throw error;
-    }
-  };
-
-  // Update getAngleForWinner function
+  // Função para obter o ângulo do vencedor
   const getAngleForWinner = (winnerName) => {
     const segment = segments.find((seg) => seg.name === winnerName);
     if (segment) {
@@ -272,8 +271,19 @@ export default function Roulette({ players, onOpenDepositModal, onWinner, setPla
     }
   };
 
-  // Calculate the Prize Pool using activeRound.prize
-  const prizePool = activeRound && activeRound.prize ? parseFloat(activeRound.prize) : 0;
+  // Função para formatar o countdown em mm:ss
+  const formatCountdown = (totalSeconds) => {
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    const paddedSeconds = seconds.toString().padStart(2, '0');
+    return `${minutes}m ${paddedSeconds}s`;
+  };
+
+  // Calcular o Prize Pool usando activeRound.prize
+  const prizePool =
+    activeRound && activeRound.totalDeposit
+      ? parseFloat(activeRound.totalDeposit)
+      : 0;
 
   return (
     <div className={styles.rouletteContainer}>
@@ -292,7 +302,7 @@ export default function Roulette({ players, onOpenDepositModal, onWinner, setPla
       >
         {segments.map((segment, index) => renderSlice(segment, index))}
         {renderLabels()}
-        {/* Center of the roulette */}
+        {/* Centro da roleta */}
         <circle
           cx="160"
           cy="160"
@@ -308,32 +318,40 @@ export default function Roulette({ players, onOpenDepositModal, onWinner, setPla
           className={styles.wheelCenterImage}
         />
       </svg>
-      {/* Deposit Tokens Button */}
+      {/* Botão de Depósito */}
       <button
         className={styles.depositButton}
         onClick={onOpenDepositModal}
-        disabled={isSpinning || countdown <= 60} // Desabilita quando faltar 1 minuto ou menos
+        disabled={
+          isSpinning ||
+          countdown <= 60 ||
+          (activeRound && activeRound.status !== 'active')
+        }
       >
         {isSpinning
-          ? 'Depositing...'
-          : countdown > 60
+          ? 'Spinning...'
+          : countdown > 60 && activeRound && activeRound.status === 'active'
           ? 'Deposit Tokens'
           : 'Deposits Closed'}
       </button>
 
       {/* Mensagem de Depósitos Fechados */}
-      {countdown <= 60 && (
+      {countdown <= 60 && activeRound && activeRound.status === 'active' && (
         <div className={styles.depositsClosedMessage}>
           Deposits are closed for the current round.
         </div>
       )}
 
       {/* Countdown Timer */}
-      <div className={styles.countdown}>
-        Next spin in: {formatCountdown(countdown)}
-      </div>
+      {activeRound && activeRound.status === 'active' && (
+        <div className={styles.countdown}>
+          Next spin in: {formatCountdown(countdown)}
+        </div>
+      )}
+
       {/* Prize Pool Component */}
       <PrizePool amount={prizePool} />
+
       {winner && (
         <>
           {showConfetti && <Confetti trigger={showConfetti} />}

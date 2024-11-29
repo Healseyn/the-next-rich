@@ -1,4 +1,5 @@
 // pages/index.js
+
 import Head from 'next/head';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
@@ -9,10 +10,10 @@ import LastWinners from '../components/LastWinners';
 import DepositModal from '../components/DepositModal';
 import styles from './Home.module.css';
 import Cookies from 'js-cookie';
-import IntroductionModal from '../components/IntroductionModal'; // Adjust the path accordingly
-import { fetchActiveRound, fetchWinners } from '../utils/api'; // Import the fetch functions
+import IntroductionModal from '../components/IntroductionModal';
+import { fetchActiveRound, fetchWinners } from '../utils/api';
 
-// Dynamic import of WalletMultiButton
+// Importação dinâmica do WalletMultiButton
 const WalletMultiButton = dynamic(
   () =>
     import('@solana/wallet-adapter-react-ui').then(
@@ -21,16 +22,17 @@ const WalletMultiButton = dynamic(
   { ssr: false }
 );
 
-// Import React Icons
+// Importação de ícones do React
 import { FaDiscord, FaBook, FaTwitter } from 'react-icons/fa';
-import PumpFunIcon from '../public/pumpfunicon.png'; // Ensure the path is correct
+import PumpFunIcon from '../public/pumpfunicon.png';
 
 export default function Home() {
   const [isDepositModalOpen, setDepositModalOpen] = useState(false);
   const [players, setPlayers] = useState([]);
   const [winners, setWinners] = useState([]);
   const [showIntroModal, setShowIntroModal] = useState(false);
-  const [activeRound, setActiveRound] = useState(null); // New state for the active round
+  const [activeRound, setActiveRound] = useState(null);
+  const [hasSpun, setHasSpun] = useState(false); // Novo estado para controlar se a roleta já girou
 
   useEffect(() => {
     const loadActiveRound = async () => {
@@ -38,42 +40,34 @@ export default function Home() {
         const round = await fetchActiveRound();
         setActiveRound(round);
 
-        // If there are participants, update the players state
         if (round.participants && Array.isArray(round.participants)) {
-          // Transform participants into the expected format
           const transformedPlayers = round.participants.map((participant) => ({
             name: participant.name,
             deposit: parseFloat(participant.deposit),
+            publicKey: participant.playerPublicKey,
           }));
 
           setPlayers(transformedPlayers);
+        } else {
+          setPlayers([]);
+        }
+
+        // Resetar hasSpun se a rodada mudar
+        if (activeRound && round.id !== activeRound.id) {
+          setHasSpun(false);
         }
       } catch (error) {
         console.error('Error loading active round:', error);
       }
     };
 
-    loadActiveRound();
-
-    // Load the winners as well
-    const loadWinners = async () => {
-      try {
-        const historicalWinners = await fetchWinners();
-        setWinners(historicalWinners);
-      } catch (error) {
-        console.error('Error loading winners:', error);
-      }
-    };
-
-    loadWinners();
-
-    // Optional: Update the active round periodically
+    // Atualizar a rodada ativa periodicamente
     const interval = setInterval(() => {
       loadActiveRound();
-    }, 50000); // Update every 50 seconds
+    }, 5000); // Atualiza a cada 5 segundos
 
-    return () => clearInterval(interval); // Clear the interval when the component unmounts
-  }, []);
+    return () => clearInterval(interval);
+  }, [activeRound]);
 
   useEffect(() => {
     const hasVisited = Cookies.get('hasVisited');
@@ -91,26 +85,34 @@ export default function Home() {
     setPlayers((prevPlayers) => {
       const existingPlayer = prevPlayers.find((p) => p.name === player.name);
       if (existingPlayer) {
-        // Update existing deposit
         return prevPlayers.map((p) =>
           p.name === player.name
             ? { ...p, deposit: p.deposit + player.amount }
             : p
         );
       } else {
-        // Add new player
         return [...prevPlayers, { name: player.name, deposit: player.amount }];
       }
     });
   };
 
   const handleBuyTokens = () => {
-    window.open('https://pump.fun', '_blank'); // Replace with your actual URL
+    window.open('https://pump.fun', '_blank');
   };
 
-  const handleNewWinner = (winner) => {
-    setWinners((prevWinners) => [winner, ...prevWinners]);
-    setPlayers([]); // Clear players after the spin
+  const handleNewWinner = async (winner) => {
+    setHasSpun(true); // Marca que o giro foi concluído
+
+    // Recarrega os ganhadores para incluir o novo ganhador
+    try {
+      const latestWinners = await fetchWinners();
+      setWinners(latestWinners.winners || latestWinners); // Atualize de acordo com a estrutura retornada
+    } catch (error) {
+      console.error('Error fetching winners:', error);
+    }
+
+    // Limpa os jogadores após o giro
+    setPlayers([]);
   };
 
   return (
@@ -123,7 +125,9 @@ export default function Home() {
         />
       </Head>
 
-      {showIntroModal && <IntroductionModal onClose={() => setShowIntroModal(false)} />}
+      {showIntroModal && (
+        <IntroductionModal onClose={() => setShowIntroModal(false)} />
+      )}
 
       {/* Header */}
       <header className={styles.header}>
@@ -151,81 +155,90 @@ export default function Home() {
           onOpenDepositModal={toggleDepositModal}
           onWinner={handleNewWinner}
           setPlayers={setPlayers}
-          activeRound={activeRound} // Pass the active round as a prop
+          activeRound={activeRound}
+          hasSpun={hasSpun} // Passa hasSpun para o componente Roulette
         />
         <Leaderboard players={players} />
-        <LastWinners winners={winners} />
+        <LastWinners
+          winners={winners}
+          activeRound={activeRound}
+          hasSpun={hasSpun} // Passa hasSpun para o componente LastWinners
+        />
       </main>
 
-{/* Footer */}
-<footer className={styles.footer}>
-  <div className={styles.footerContent}>
-    <span>© {new Date().getFullYear()} The Next Rich. All rights reserved.</span>
+      {/* Footer */}
+      <footer className={styles.footer}>
+        <div className={styles.footerContent}>
+          <span>
+            © {new Date().getFullYear()} The Next Rich. All rights reserved.
+          </span>
 
-    {/* New text in the middle */}
-    <div className={styles.madeWithLove}>
-      made with ❤️ by{' '}
-      <a
-        href="https://github.com/Healseyn"
-        target="_blank"
-        rel="noopener noreferrer"
-        className={styles.footerLink}
-      >
-        Healseyn
-      </a>
-    </div>
+          {/* Texto adicional no meio */}
+          <div className={styles.madeWithLove}>
+            made with ❤️ by{' '}
+            <a
+              href="https://github.com/Healseyn"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.footerLink}
+            >
+              Healseyn
+            </a>
+          </div>
 
-    <div className={styles.footerLinks}>
-      {/* Existing footer links */}
-      <a
-        href="https://discord.gg/PDWypMJqXH"
-        target="_blank"
-        rel="noopener noreferrer"
-        className={styles.footerLink}
-        aria-label="Join our Discord server"
-      >
-        <FaDiscord size={20} />
-        <span className={styles.linkText}>Discord</span>
-      </a>
-      <a
-        href="https://docs.thenextrich.xyz/"
-        target="_blank"
-        rel="noopener noreferrer"
-        className={styles.footerLink}
-        aria-label="View our Documentation"
-      >
-        <FaBook size={20} />
-        <span className={styles.linkText}>Docs</span>
-      </a>
-      <a
-        href="https://pump.fun"
-        target="_blank"
-        rel="noopener noreferrer"
-        className={styles.footerLink}
-        aria-label="Visit Pump.fun"
-      >
-        <Image src={PumpFunIcon} alt="Pump.fun" width={20} height={20} />
-        <span className={styles.linkText}>Pump.fun</span>
-      </a>
-      {/* Add Twitter Link */}
-      <a
-        href="https://x.com/TheNextRichSol"
-        target="_blank"
-        rel="noopener noreferrer"
-        className={styles.footerLink}
-        aria-label="Follow us on Twitter"
-      >
-        <FaTwitter size={20} />
-        <span className={styles.linkText}>Twitter</span>
-      </a>
-    </div>
-  </div>
-</footer>
-
+          <div className={styles.footerLinks}>
+            <a
+              href="https://discord.gg/PDWypMJqXH"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.footerLink}
+              aria-label="Join our Discord server"
+            >
+              <FaDiscord size={20} />
+              <span className={styles.linkText}>Discord</span>
+            </a>
+            <a
+              href="https://docs.thenextrich.xyz/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.footerLink}
+              aria-label="View our Documentation"
+            >
+              <FaBook size={20} />
+              <span className={styles.linkText}>Docs</span>
+            </a>
+            <a
+              href="https://pump.fun"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.footerLink}
+              aria-label="Visit Pump.fun"
+            >
+              <Image src={PumpFunIcon} alt="Pump.fun" width={20} height={20} />
+              <span className={styles.linkText}>Pump.fun</span>
+            </a>
+            {/* Link do Twitter */}
+            <a
+              href="https://x.com/TheNextRichSol"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.footerLink}
+              aria-label="Follow us on Twitter"
+            >
+              <FaTwitter size={20} />
+              <span className={styles.linkText}>Twitter</span>
+            </a>
+          </div>
+        </div>
+      </footer>
 
       {/* Deposit Modal */}
       {isDepositModalOpen && (
-        <DepositModal onClose={toggleDepositModal} onDeposit={handleDeposit} />
+        <DepositModal
+          onClose={toggleDepositModal}
+          onDeposit={handleDeposit}
+          activeRound={activeRound}
+        />
       )}
     </div>
   );

@@ -23,6 +23,8 @@ export async function fetchWinners() {
   }
 }
 
+// utils/api.js
+
 export async function fetchActiveRound() {
   try {
     const response = await fetch('https://api.thenextrich.xyz/rounds/active');
@@ -32,7 +34,13 @@ export async function fetchActiveRound() {
     }
 
     const data = await response.json();
-    return data; // Return the whole data object
+
+    // Verificar se o status é "waiting"
+    if (data.status === 'waiting') {
+      return { ...data, isWaiting: true };
+    }
+
+    return data; // Retornar o objeto data com as informações da rodada
   } catch (error) {
     console.error('Error fetching active round:', error);
     throw error;
