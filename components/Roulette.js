@@ -281,8 +281,8 @@ export default function Roulette({ onOpenDepositModal, onWinner, activeRound }) 
 
   // Calcular o Prize Pool usando activeRound.prize
   const prizePool =
-    activeRound && activeRound.totalDeposit
-      ? parseFloat(activeRound.totalDeposit)
+    activeRound && activeRound.prize
+      ? parseFloat(activeRound.prize)
       : 0;
 
   return (
