@@ -1,3 +1,4 @@
+// components/DepositModal.js
 import { useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import {
@@ -21,12 +22,14 @@ export default function DepositModal({ onClose, onDeposit, activeRound }) {
 
   const { publicKey, signTransaction } = useWallet();
 
-  const customConnection = new Connection('https://mainnet.helius-rpc.com/?api-key=e9ef9f06-2e04-43ba-a91a-d1ef108c5b8c');
+  // Obter as variáveis de ambiente
+  const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL;
+  const TOKEN_MINT_ADDRESS = new PublicKey(process.env.NEXT_PUBLIC_TOKEN_MINT_ADDRESS);
+  const GAME_ACCOUNT_PUBLIC_KEY = new PublicKey(process.env.NEXT_PUBLIC_GAME_ACCOUNT_PUBLIC_KEY);
+  const MEMO_PROGRAM_ID = new PublicKey(process.env.NEXT_PUBLIC_MEMO_PROGRAM_ID);
+  const decimals = parseInt(process.env.NEXT_PUBLIC_TOKEN_DECIMALS, 10);
 
-  const TOKEN_MINT_ADDRESS = new PublicKey('BAmqiw5XcKP4ftEwxJC4bQicmXHjJgr9USnDryxBpump');
-  const GAME_ACCOUNT_PUBLIC_KEY = new PublicKey('DoFqTcawopjxLBdBhFUEQezByUipqzAmUfng93KUHjPE');
-  const MEMO_PROGRAM_ID = new PublicKey('MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr'); // Memo Program ID
-  const decimals = 6; // Your token's decimal count
+  const customConnection = new Connection(RPC_URL);
 
   const handleDeposit = async () => {
     if (!publicKey || !signTransaction) {
