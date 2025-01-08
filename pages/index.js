@@ -108,7 +108,7 @@ export default function Home() {
   };
 
   const handleBuyTokens = () => {
-    window.open('https://pump.fun/coin/KSNntrnj3rdYJxWDjhMYPXig14MP5Dms7id3f95pump', '_blank');
+    window.open('https://pump.fun/coin/', '_blank');
   };
 
   const handleNewWinner = async () => {
@@ -218,7 +218,7 @@ export default function Home() {
               <span className={styles.linkText}>Docs</span>
             </a>
             <a
-              href="https://pump.fun/coin/KSNntrnj3rdYJxWDjhMYPXig14MP5Dms7id3f95pump"
+              href="https://pump.fun/coin/"
               target="_blank"
               rel="noopener noreferrer"
               className={styles.footerLink}
